@@ -102,6 +102,8 @@ CREATE TABLE IF NOT EXISTS `PREFIXemail` (
 
 ALTER TABLE `PREFIXbannedhashes` ADD `dateadded` int(20) NOT NULL;
 ALTER TABLE `PREFIXbannedhashes` ADD `addedby` varchar(75) NOT NULL;
+ALTER TABLE `PREFIXbannedhashes` MODIFY `bantime` int(20);
+
 -- All Done :) --
 
 
