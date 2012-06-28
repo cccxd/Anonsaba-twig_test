@@ -37,8 +37,6 @@ Warning: Do not insert single quotes in the value yourself, or else you will cau
 	define('KU_NAME', 'Jason\'s chan');
 
 */
-// Sets error reporting to hide notices.
-error_reporting(0);
 if (!headers_sent()) {
 	header('Content-Type: text/html; charset=utf-8');
 }
@@ -238,6 +236,7 @@ _bind_textdomain_codeset('kusaba', KU_CHARSET);
 if (!isset($tc_db) && !isset($preconfig_db_unnecessary)) {
 	require KU_ROOTDIR . 'inc/classes/database.class.php';
 	if (KU_DEBUG) {
+		error_reporting(E_ALL ^ E_NOTICE);
 		require KU_ROOTDIR . 'inc/classes/debug-database.class.php';
 		if (KU_DBUSEPERSISTENT) {
 			$tc_db = new DebugDatabase(KU_DBTYPE.':host='.KU_DBHOST.';dbname='.KU_DBDATABASE, KU_DBUSERNAME, KU_DBPASSWORD, array(
@@ -248,6 +247,7 @@ if (!isset($tc_db) && !isset($preconfig_db_unnecessary)) {
 		}
 		$tc_db->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING );
 	} else {
+		error_reporting(0);
 		if (KU_DBUSEPERSISTENT) {
 			$tc_db = new Database(KU_DBTYPE.':host='.KU_DBHOST.';dbname='.KU_DBDATABASE, KU_DBUSERNAME, KU_DBPASSWORD, array(
 				PDO::ATTR_PERSISTENT => true
