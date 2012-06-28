@@ -86,7 +86,6 @@ if (!$manage_class->ValidateSession(true)) {
 		$tpl_links .= section_html(_gettext('Root Administration'), 'rootadministration', false) .
 		'<ul>' . "\n" .
 		'<li><a href="manage_page.php?action=sql">' . _gettext('SQL query') . '</a></li>' . "\n" .
-		'<li><a href="manage_page.php?action=backup">' ._gettext('Backup') . '</a></li>' . "\n" .
 		'</ul></div>';
 	}
 		

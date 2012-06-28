@@ -1083,7 +1083,7 @@ class Manage {
 				</form><br />';
 			}
 		}
-			$tpl_page .= '<form action="manage_page.php?action=staff&add" method="post">
+		$tpl_page .= '<form action="manage_page.php?action=staff&add" method="post">
           		<input type="hidden" name="token" value="' . $_SESSION['token'] . '" />
 			<label for="username">' ._gettext('Username'). ':</label>
 			<input type="text" id="username" name="username" /><br />
@@ -1839,9 +1839,9 @@ class Manage {
 			$tpl_page .= '<table border="1" width="100%"><tr><th>Board</th><th>Post</th><th>File</th><th>Message</th><th>IP</th></tr>';
 			foreach ($resultssearch as $linesearch) {
 				$searchboardid = $tc_db->GetOne("SELECT HIGH_PRIORITY `id` FROM `" . KU_DBPREFIX . "boards` WHERE `name` = " . $tc_db->qstr($linesearch['boardname']));
-				$results = $tc_db->GetAll('SELECT * FROM `' . KU_DBPREFIX . 'posts` WHERE `boardid` = ' . $searchboardid . ' AND `id` = ' . $tc_db->qstr($linesearch['id']));
+				$results = $tc_db->GetAll('SELECT * FROM `' . KU_DBPREFIX . 'posts` WHERE `IS_DELETED` = 0 AND `boardid` = ' . $searchboardid . ' AND `id` = ' . $tc_db->qstr($linesearch['id']));
 				foreach($results as $line) {
-					if ($line['IS_DELETED'] == 0) {
+					if (count($results) > 0) {
 						$tpl_page .= '<tr><td>/'. $linesearch['boardname'] . '/</td><td><a href="'. KU_BOARDSPATH . '/'. $linesearch['boardname'] . '/res/';
 						$tpl_page .= $line['parentid'] == '0' ? $linesearch['id'] : $line['parentid'];	
 						$post_threadorpost = $line['parentid'] == '0' ? 'thread' : 'post';
@@ -3869,7 +3869,7 @@ class Manage {
 							}
 						}
 					}
-					$tpl_page .='</td><td>'. stripslashes($line['message']) . '</td><td>'. md5_decrypt($line['ip'], KU_RANDOMSEED) . '';
+					$tpl_page .='</td><td>'. stripslashes($line['message']) . '</td><td><a href="?action=ipsearch&ip='.md5_decrypt($line['ip'], KU_RANDOMSEED).'">'. md5_decrypt($line['ip'], KU_RANDOMSEED) . '</a>';
 					if ($line['parentid'] == 0) {
 						$post_threadorpost = 'thread';
 					} else {

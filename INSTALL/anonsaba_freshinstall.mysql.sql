@@ -62,7 +62,7 @@ CREATE TABLE `PREFIXbanlist` (
 CREATE TABLE `PREFIXbannedhashes` (
   `id` int(10) NOT NULL auto_increment,
   `md5` varchar(255) NOT NULL,
-  `bantime` int(10) NOT NULL default '0',
+  `bantime` int(20) NOT NULL default '0',
   `description` text NOT NULL,
   `dateadded` int(20) NOT NULL,
   `addedby` varchar(75) NOT NULL,
@@ -339,7 +339,7 @@ CREATE TABLE `PREFIXpost_files` (
 -- Table structure for table `pms`
 --
 
-CREATE TABLE `PREFIXpms` (
+CREATE TABLE `pms` (
   `id` smallint(5) unsigned NOT NULL auto_increment,
   `message` text NOT NULL,
   `to` varchar(255) NOT NULL,

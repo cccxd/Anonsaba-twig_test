@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `PREFIXpost_files` (
   KEY `file_md5` (`file_md5`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
-INSERT INTO `PREFIXpost_files` SELECT `id`, `boardid`, `file`, `file_md5`, `file_type`, `file_original`, `file_size`, `file_size_formatted`, `image_w`, `image_h`, `thumb_w`, `thumb_h`, `IS_DELETED`, `timestamp`, `deleted_timestamp` FROM `PREFIXposts`;
+INSERT INTO `PREFIXpost_files` SELECT `id`, `boardid`, `file`, `file_md5`, `file_type`, `file_original`, `file_size`, `file_size_formatted`, `image_w`, `image_h`, `thumb_w`, `thumb_h`, `reviewed`, `IS_DELETED`, `timestamp`, `deleted_timestamp` FROM `PREFIXposts`;
 
 ALTER TABLE `PREFIXposts` DROP COLUMN `file`;
 ALTER TABLE `PREFIXposts` DROP COLUMN `file_md5`;

@@ -734,7 +734,7 @@ class Board {
 		}
 		$postbox = '';
 		if ($this->board['type'] == 2 && $replythread > 0) {
-			$oekposts = $tc_db->GetAll("SELECT `id` FROM `" . KU_DBPREFIX."posts` WHERE `boardid` = " . $this->board['id']." AND (`id` = ".$replythread." OR `parentid` = ".$replythread.") AND `file` != '' AND `file` != 'removed' AND `file_type` IN ('jpg', 'gif', 'png') AND `IS_DELETED` = 0 ORDER BY `parentid` ASC, `timestamp` ASC");
+			$oekposts = $tc_db->GetAll("SELECT `id` FROM `" . KU_DBPREFIX."posts` WHERE `boardid` = " . $this->board['id']." AND (`id` = ".$replythread." OR `parentid` = ".$replythread.") AND `IS_DELETED` = 0 ORDER BY `parentid` ASC, `timestamp` ASC");
 			$this->dwoo_data->assign('oekposts', $oekposts);
 		}
 		if ($this->board['enablecaptcha'] ==  1) {
