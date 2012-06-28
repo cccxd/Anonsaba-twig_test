@@ -118,7 +118,7 @@ if (isset($_GET['do'])) {
 
 				$output .= '</span>';
 
-				if ($tripcode != '') {
+				if ($threadinfo['tripcode'] != '') {
 					$output .= '<span class="postertrip">!' . $threadinfo['tripcode'] . '</span>';
 				}
 

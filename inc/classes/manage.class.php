@@ -1111,7 +1111,7 @@ class Manage {
 			</form>
 			<hr /><br />';
 		if($_GET['accesshelp'] == 1) {
-			$tpl_page .= '<span>Access levels are a new feature to limit the functions which Moderators can access. For example, if you set an access level of 5; the moderator can access all functions below and including Manage stickes/lock threads (which corresponds to level 5).</span><ol><li>Recently uploaded images</li><li>View Reports</li><li>Delete thread/post</li><li>Delete/find all posts by IP</li><li>Manage stickes/lock threads</li><li>View/Add/Remove bans</li><li>All boards ban</li><li>Site ban</li><li>Manage Boards (Super Moderator)</li></ol><br/>';
+			$tpl_page .= '<span>Access levels are a new feature to limit the functions which Moderators can access. For example, if you set an access level of 5; the moderator can access all functions below and including Manage stickes/lock threads (which corresponds to level 5).</span><ol><li>Recent posts</li><li>View Reports</li><li>Delete thread/post</li><li>Delete/find all posts by IP</li><li>Manage stickes/lock threads</li><li>View/Add/Remove bans</li><li>All boards ban</li><li>Site ban</li><li>Manage Boards (Super Moderator)</li></ol><br/>';
 		}
 		$tpl_page .= '<table border="1" width="100%"><tr><th>'. _gettext('Username') . '</th><th>'. _gettext('Added on') . '</th><th>'. _gettext('Last active') . '</th><th>'. _gettext('Moderating boards') . '</th><th>'. _gettext('Options') . '</th></tr>'. "\n";
 		$i = 1;
@@ -3875,7 +3875,7 @@ class Manage {
 					} else {
 						$post_threadorpost = 'post';
 					}
-					$tpl_page .= '</td><td>&#91;<a href="?action=delposts&boarddir='. $line['boardname'] . '&del'. $post_threadorpost . 'id='. $line['id'] . '" title="Delete" onclick="return confirm(\'Are you sure you want to delete this thread/post?\');">D</a>&nbsp;<a href="'. KU_CGIPATH . '/manage_page.php?action=delposts&boarddir='. $line['boardname'] . '&del'. $post_threadorpost . 'id='. $line['id'] . '&postid='. $line['id'] . '" title="Delete &amp; Ban" onclick="return confirm(\'Are you sure you want to delete and ban this poster?\');">&amp;</a>&nbsp;<a href="?action=bans&banboard='. $line['boardname'] . '&banpost='. $line['id'] . '" title="Ban">B</a>&#93;</td></tr>';
+					$tpl_page .= '</td><td>&#91;<a href="?action=delposts&boarddir='. $line['boardname'] . '&del'. $post_threadorpost . 'id='. $line['id'] . '" title="Delete" onclick="return confirm(\'Are you sure you want to delete this thread/post?\');">D</a>&nbsp;<a href="'. KU_CGIPATH . '/manage_page.php?action=delposts&boarddir='. $line['boardname'] . '&del'. $post_threadorpost . 'id='. $line['id'] . '&postid='. $line['id'] . '" title="Delete &amp; Ban" onclick="return confirm(\'Are you sure you want to delete and ban this poster?\');">&amp;</a>&nbsp;<a href="?action=bans&banboard='. $line['boardname'] . '&banpost='. $line['id'] . '" title="Ban">B</a>&#93;&nbsp;&#91;<a href="?action=bans&banboard='.$line['boardname'].'&banpost='.$line['id'].'&instant=y" title="Proxy" onclick="return confirm(\'Are you sure you want to delete and ban this poster for using a proxy?\');">P</a>&#93;&nbsp;&#91;<a href="action=delposts&boarddir='.$line['boardname'].'&del'.$post_threadorpost.'id='.$line['id'].'&postid='.$line['id'].'&cp=y" title="CP" onclick="return confirm(\'Are you sure you want to delete and ban this poster for CP?\');">CP</a>&#93;</td></tr>';
 				}
 				$tpl_page .= '</table>';
 				$reviewsql = substr($reviewsql, 0, -3) . ' LIMIT '. count($results);
