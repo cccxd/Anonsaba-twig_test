@@ -237,37 +237,45 @@ class Manage {
 		foreach ($userlist as $result) {
 			$staff[] = $result['username'];
 		}
-		$final = implode(', ', $staff);
 		$tpl_page .='
 			<form action="manage_page.php?action=pms" method="post">
 			<label for="to">'. _gettext('To') . ':</label>';
 			if ($_GET['reply']) {
 				$sendto = $tc_db->GetOne('SELECT `from` FROM `'.KU_DBPREFIX.'pms` WHERE `id` = '.$tc_db->qstr($_GET['reply']).'');
 				$tc_db->Execute('UPDATE `'.KU_DBPREFIX.'pms` SET `read` = 1 WHERE `id` = '.$tc_db->qstr($_GET['reply']).'');
-				$tpl_page .='<input type="text" id="to" name="to" value="'. $sendto.'" />';
+				$tpl_page .='<select name="to"><option value="'. $sendto.'" />'.$sendto.'</option></select>';	
+			
 			} else {
-				$tpl_page .= '<input type="text" id="to" name="to" />';
+				$output = '<select name="to"><option value="">'._gettext('Select a staff member').'</option>';
+				foreach ($userlist as $result) {
+					$output .='<option value="'.$result['username'].'">'.$result['username'].'</option>';
+				}
+				$output .= '</select>';
+				$tpl_page .= $output;
 			}
-			$tpl_page .='<div class="desc"><b>'. $final . '</b></div><br />
+			$tpl_page .='<br />
 			<label for="message"> '. _gettext('Message') . ':</label>
 			<textarea id="message" name="message" rows="25" cols="80"></textarea><br /><br />
 			<input type="submit" name="submit" id="submit" value="'. _gettext('Send') . '" />
+			<br /><center><input type="submit" name="allread" id="allread" value="Mark all as read" />
+			<input type="submit" name="delall" id="delall" value="Delete all messages" /></center>
 			</form>';
-			if (isset($_POST['submit'])) {
+			if (isset($_POST['submit']) && $_POST['to'] != '') {
 				$tpl_page .= '<hr />';
-				if (!in_array($_POST['to'], $staff)) {
-					exitWithErrorPage(_gettext('There is no user by that username.'));
-				}
 				$tc_db->Execute("INSERT HIGH_PRIORITY INTO `" . KU_DBPREFIX . "pms` ( `to`, `message` , `from`) VALUES ( ". $tc_db->qstr($_POST['to'])." , " . $tc_db->qstr($_POST['message']) . " , '".$_SESSION['manageusername']."')");
 				$tpl_page .= '<h3>'. _gettext('Message successfully sent.') . '</h3>';
-			}
-			if ($_GET['del']) {
+			} elseif ($_GET['del']) {
 				$tc_db->Execute("DELETE FROM `" . KU_DBPREFIX . "pms` WHERE `id` = " . $tc_db->qstr($_GET['del']) . "");
 				$tpl_page .= '<hr /><h3>'. _gettext('Message deleted.') .'</h3><hr />';
-			}
-			if ($_GET['dismiss']) {
+			} elseif ($_GET['dismiss']) {
 				$tc_db->Execute('UPDATE `'.KU_DBPREFIX.'pms` SET `read` = 1 WHERE `id` = '.$tc_db->qstr($_GET['dismiss']).'');
 				$tpl_page .= '<hr /><h3>'. _gettext('Message dismissed.') .'</h3><hr />';
+			} elseif (isset($_POST['allread'])) {
+				$tc_db->Execute('UPDATE `'.KU_DBPREFIX.'pms` SET `read` = 1 WHERE `to` = "'.$_SESSION['manageusername'].'"');
+				$tpl_page .= '<hr /><h3>'. _gettext('All messages have been marked as read.') .'</h3><hr />';
+			} elseif (isset($_POST['delall'])) {
+				$tc_db->Execute('DELETE FROM `'.KU_DBPREFIX.'pms` WHERE `to` = "'.$_SESSION['manageusername'].'"');
+				$tpl_page .= '<hr /><h3>'._gettext('All messages deleted.').'</h3><hr />';
 			}
 			$tpl_page .= '<br /><hr /><h1>'. _gettext('Private Messages') .'</h1>';
 			$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "pms` WHERE `to` = '".$_SESSION['manageusername']."' ORDER BY `id` DESC");
@@ -3807,74 +3815,6 @@ class Manage {
 			</form>';
 		}
 	}
-	/* View recently uploaded images */
-	function recentimages() {
-		global $tc_db, $tpl_page;
-		$this->ModeratorsOnly();
-		if($this->CheckAccess() < 1) {
-			exitWithErrorPage('You do not have permission to access this page');
-		}
-		if (!isset($_SESSION['imagesperpage'])) {
-			$_SESSION['imagesperpage'] = 50;
-		}
-		if (isset($_GET['show'])) {
-			if ($_GET['show'] == '25' || $_GET['show'] == '50' || $_GET['show'] == '75' || $_GET['show'] == '100') {
-				$_SESSION['imagesperpage'] = $_GET['show'];
-			}
-		}
-		$tpl_page .= '<h2>'. _gettext('Recently uploaded images') . '</h2><br />
-		'._gettext('Number of images to show per page').': <a href="?action=recentimages&show=25">25</a>, <a href="?action=recentimages&show=50">50</a>, <a href="?action=recentimages&show=75">75</a>, <a href="?action=recentimages&show=100">100</a> '._gettext('(note that this is a rough limit, more may be shown)').'<br />';
-		if (isset($_POST['clear'])) {
-			if ($_POST['clear'] != '') {
-				$clear_decrypted = md5_decrypt($_POST['clear'], KU_RANDOMSEED);
-				if ($clear_decrypted != '') {
-					$clear_unserialized = unserialize($clear_decrypted);
-					foreach ($clear_unserialized as $clear_sql) {
-						$tc_db->Execute($clear_sql);
-					}
-					$tpl_page .= _gettext('Successfully marked previous images as reviewed.').'<hr />';
-				}
-			}
-		}
-		$dayago = (time() - 86400);
-		$imagesshown = 0;
-		$reviewsql_array = array();
-		if ($imagesshown <= $_SESSION['imagesperpage']) {
-			$results = $tc_db->GetAll("SELECT HIGH_PRIORITY `" . KU_DBPREFIX . "boards`.`name` AS `boardname`, `" . KU_DBPREFIX . "post_files`.`boardid` AS boardid, `" . KU_DBPREFIX . "post_files`.`id` AS id, `" . KU_DBPREFIX . "post_files`.`file` AS file, `" . KU_DBPREFIX . "post_files`.`file_type` AS file_type, `" . KU_DBPREFIX . "post_files`.`thumb_w` AS thumb_w, `" . KU_DBPREFIX . "post_files`.`thumb_h` AS thumb_h FROM `" . KU_DBPREFIX . "post_files`, `" . KU_DBPREFIX ."boards` WHERE (`file_type` = 'jpg' OR `file_type` = 'gif' OR `file_type` = 'png') AND `reviewed` = 0 AND `".KU_DBPREFIX."post_files`.`IS_DELETED` = 0 AND `" . KU_DBPREFIX . "boards`.`id` = `" . KU_DBPREFIX . "post_files`.`boardid` ORDER BY `timestamp` DESC LIMIT " . intval($_SESSION['imagesperpage']));
-			if (count($results) > 0) {
-				$reviewsql = "UPDATE `" . KU_DBPREFIX . "post_files` SET `reviewed` = 1 WHERE ";
-				$tpl_page .= '<table border="1">'. "\n";
-				foreach ($results as $line) {
-					$reviewsql .= '(`boardid` = '.$line['boardid'] .' AND `id` = '. $line['id'] . ') OR ';
-					$real_parentid = array();
-					$result1 = $tc_db->GetAll("SELECT `parentid` FROM `".KU_DBPREFIX."posts` WHERE `id` = ".$line['id']." AND `boardid` = ".$line['boardid']."");
-					foreach ($result1 as $result) {
-						$real_parentid = $result['parentid'];
-					}
-					if ($real_parentid == 0) {
-						$real_parentid = $line['id'];
-						$post_threadorpost = 'thread';
-					} else {
-						$post_threadorpost = 'post';
-					}
-					$tpl_page .= '<tr><td><a href="'. KU_BOARDSPATH . '/'. $line['boardname'] . '/res/'. $real_parentid . '.html#'. $line['id'] . '">/'. $line['boardname'] . '/'. $line['id'] . '</td><td><a href="'. KU_BOARDSPATH . '/'. $line['boardname'] . '/res/'. $real_parentid . '.html#'. $line['id'] . '"><img src="'. KU_BOARDSPATH . '/'. $line['boardname'] . '/thumb/'. $line['file'] . 's.'. $line['file_type'] . '" width="'. $line['thumb_w'] . '" height="'. $line['thumb_h'] . '" border="0"></a></td><td>&#91;<a href="?action=delposts&boarddir='. $line['boardname'] . '&del'. $post_threadorpost . 'id='. $line['id'] . '" title="Delete" onclick="return confirm(\'Are you sure you want to delete this thread/post?\');">D</a>&nbsp;<a href="'. KU_CGIPATH . '/manage_page.php?action=delposts&boarddir='. $line['boardname'] . '&del'. $post_threadorpost . 'id='. $line['id'] . '&postid='. $line['id'] . '" title="Delete &amp; Ban" onclick="return confirm(\'Are you sure you want to delete and ban this poster?\');">&amp;</a>&nbsp;<a href="?action=bans&banboard='. $line['boardname'] . '&banpost='. $line['id'] . '" title="Ban">B</a>&#93;</td></tr>';
-				}
-				$tpl_page .= '</table>';
-				$reviewsql = substr($reviewsql, 0, -3);
-				$reviewsql_array[] = $reviewsql;
-				$imagesshown += count($results);
-			}
-		}
-		if ($imagesshown > 0) {
-			$tpl_page .= '<br /><br />'. sprintf(_gettext('%s images shown.'), $imagesshown). '<br />';
-			$tpl_page .= '<form action="?action=recentimages" method="post">
-			<input type="hidden" name="clear" value="'. md5_encrypt(serialize($reviewsql_array), KU_RANDOMSEED) . '" />
-			<input type="submit" value="'. _gettext('Clear All On Page As Reviewed') .'" />
-			</form><br />';
-		} else {
-			$tpl_page .= '<br /><br />'. _gettext('No recent images currently need review.') ;
-		}
-	}
 	/* View recently posted posts */
 	function recentposts() {
 		global $tc_db, $tpl_page;
@@ -3910,15 +3850,26 @@ class Manage {
 		$boardlist = $this->BoardList($_SESSION['manageusername']);
 		$username = $_SESSION['manageusername'];
 		if ($postsshown <= $_SESSION['postsperpage']) {
-			$results = $tc_db->GetAll("SELECT HIGH_PRIORITY `" . KU_DBPREFIX . "boards`.`name` AS `boardname`, `" . KU_DBPREFIX . "posts`.`boardid` AS boardid, `" . KU_DBPREFIX . "posts`.`id` AS id, `" . KU_DBPREFIX . "posts`.`parentid` AS parentid, `" . KU_DBPREFIX . "posts`.`message` AS message, `" . KU_DBPREFIX . "posts`.`ip` AS ip FROM `" . KU_DBPREFIX . "posts`, `" . KU_DBPREFIX ."boards` WHERE `" . KU_DBPREFIX . "posts`.`timestamp` > " . $dayago . " AND `reviewed` = 0 AND `IS_DELETED` = 0 AND `" . KU_DBPREFIX . "boards`.`id` = `" . KU_DBPREFIX . "posts`.`boardid` ORDER BY `timestamp` DESC LIMIT " . intval($_SESSION['postsperpage']));
+			$results = $tc_db->GetAll('SELECT * FROM `'.KU_DBPREFIX.'posts` WHERE `timestamp` > ' . $dayago . ' AND `reviewed` = 0 AND `IS_DELETED` = 0 ORDER BY `timestamp` DESC LIMIT '.intval($_SESSION['postsperpage']));
 			if (count($results) > 0) {
 				$reviewsql = "UPDATE `" . KU_DBPREFIX . "posts` SET `reviewed` = 1 WHERE ";
 				$tpl_page .= '<table border="1" width="100%">'. "\n";
-				$tpl_page .= '<tr><th width="75px">'._gettext('Post Number').'</th><th>'._gettext('Post Message').'</th><th width="100px">'._gettext('Poster IP').'</th><th>'._gettext('Options').'</th></tr>'. "\n";
+				$tpl_page .= '<tr><th width="75px">'._gettext('Post Number').'</th><th>'._gettext('Post file').'</th><th>'._gettext('Post Message').'</th><th width="100px">'._gettext('Poster IP').'</th><th>'._gettext('Options').'</th></tr>'. "\n";
 				foreach ($results as $line) {
+					$files = $tc_db->GetAll('SELECT * FROM `'.KU_DBPREFIX.'post_files` WHERE `id` = '.$line['id'].' AND `boardid` = '.$line['boardid'].'');
 					$reviewsql .= '(`boardid` = '.$line['boardid'] .' AND `id` = '. $line['id'] . ') OR ';
 					$real_parentid = ($line['parentid'] == 0) ? $line['id'] : $line['parentid'];
-					$tpl_page .= '<tr><td><a href="'. KU_BOARDSPATH . '/'. $line['boardname'] . '/res/'. $real_parentid . '.html#'. $line['id'] . '">/'. $line['boardname'] . '/'. $line['id'] . '</td><td>'. stripslashes($line['message']) . '</td><td>'. md5_decrypt($line['ip'], KU_RANDOMSEED) . '';
+					$tpl_page .= '<tr><td><a href="'. KU_BOARDSPATH . '/'. $line['boardname'] . '/res/'. $real_parentid . '.html#'. $line['id'] . '">/'. $line['boardname'] . '/'. $line['id'] . '</td><td>';
+					if (!$files) {
+						$tpl_page .= 'None';
+					} else {
+						foreach ($files as $lines) {
+							if ($lines['file_type'] == 'jpg' || $lines['file_type'] == 'gif' || $lines['file_type'] == 'png') {
+								$tpl_page .= '<a href="'. KU_BOARDSPATH . '/'. $line['boardname'] . '/src/'. $lines['file'] . '.'. $lines['file_type'] . '"><img src="'. KU_BOARDSPATH . '/'. $line['boardname'] . '/thumb/'. $lines['file'] . 's.'. $lines['file_type'] . '" border="0"></a>';
+							}
+						}
+					}
+					$tpl_page .='</td><td>'. stripslashes($line['message']) . '</td><td>'. md5_decrypt($line['ip'], KU_RANDOMSEED) . '';
 					if ($line['parentid'] == 0) {
 						$post_threadorpost = 'thread';
 					} else {
@@ -4162,11 +4113,7 @@ class Manage {
 			}
 			$ip = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "posts` WHERE `boardid` = " . $tc_db->qstr($results[0]['id']) . " AND `id` = " . $tc_db->qstr($_GET['id']));
 			foreach ($ip as $line) {
-				if ($line['name'] == 'grumpy' || $line['tripcode'] == '!DmAzDkBTH2') {
-					$ipresult = '127.0.0.1';
-				} else {
-					$ipresult = md5_decrypt($ip[0]['ip'], KU_RANDOMSEED);
-				}
+				$ipresult = md5_decrypt($ip[0]['ip'], KU_RANDOMSEED);
 			}
 			die("dnb-".$_GET['boarddir']."-".$_GET['id']."-".(($ip[0]['parentid'] == 0) ? ("y") : ("n"))."=".$ipresult);
 		}

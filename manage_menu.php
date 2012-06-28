@@ -145,7 +145,6 @@ if (!$manage_class->ValidateSession(true)) {
 		<li><a href="manage_page.php?action=bans">' . _gettext('View/Add/Remove bans') . '</a></li>';
 		if (KU_APPEAL) $tpl_links .= '<li><a href="manage_page.php?action=appeals">' . _gettext('View Appeals') . '</a></li>';
 		$tpl_links .= '<li><a href="manage_page.php?action=deletepostsbyip">' . _gettext('Delete all posts by IP') . '</a></li>
-		<li><a href="manage_page.php?action=recentimages">' . _gettext('Recently uploaded images') . '</a></li>
 		<li><a href="manage_page.php?action=recentposts">' . _gettext('Recent posts') . '</a></li>
 		<li><a href="manage_page.php?action=lockunlock">' . _gettext('Lock/Unlock all boards') . '</a></li>
 		</ul></div>';

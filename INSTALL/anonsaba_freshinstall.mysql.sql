@@ -325,7 +325,6 @@ CREATE TABLE `PREFIXpost_files` (
   `image_h` smallint(5) NOT NULL default '0',
   `thumb_w` smallint(5) unsigned NOT NULL default '0',
   `thumb_h` smallint(5) unsigned NOT NULL default '0',
-  `reviewed` tinyint(1) unsigned NOT NULL default '0',
   `IS_DELETED` tinyint(1) NOT NULL default '0',
   `timestamp` int(20) unsigned NOT NULL,
   `deleted_timestamp` int(20) NOT NULL default '0',
@@ -340,7 +339,7 @@ CREATE TABLE `PREFIXpost_files` (
 -- Table structure for table `pms`
 --
 
-CREATE TABLE `pms` (
+CREATE TABLE `PREFIXpms` (
   `id` smallint(5) unsigned NOT NULL auto_increment,
   `message` text NOT NULL,
   `to` varchar(255) NOT NULL,
