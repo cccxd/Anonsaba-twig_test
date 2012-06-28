@@ -2,13 +2,19 @@ body,html {
 font-family: Arial, sans-serif;
 margin:0px auto;
 font-size:.88em;
+padding: 0px !important;
 }
+
 body {
-width:960px;
-margin-left:auto;
+width: 960px;
+left: 50%;
+margin-left: -480px!important;
 position: absolute;
-left: 200px;
-overflow:scroll;
+overflow: scroll;
+}
+
+.reflinkpreview {
+ left: 50% !important;
 }
 
 article, aside, canvas, details,
