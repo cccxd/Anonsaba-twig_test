@@ -256,63 +256,55 @@ if (!isset($tc_db) && !isset($preconfig_db_unnecessary)) {
 			$tc_db = new Database(KU_DBTYPE.':host='.KU_DBHOST.';dbname='.KU_DBDATABASE, KU_DBUSERNAME, KU_DBPASSWORD);
 		}
 	}
-$installed = '.installed';
-  if (file_exists($installed)) {
-    $results_events = $tc_db->GetAll('SELECT * FROM `' . KU_DBPREFIX . 'events` WHERE `at` <= ' . time());
-    if (count($results_events) > 0) {
-      foreach($results_events AS $line_events) {
-        if ($line_events['name'] == 'sitemap') {
-          $tc_db->Execute('UPDATE `' . KU_DBPREFIX . 'events` SET `at` = ' . (time() + 21600) . ' WHERE `name` = "sitemap"');
-          if (KU_SITEMAP) {
-            $sitemap = '<?xml version="1.0" encoding="UTF-8"?' . '>' . "\n" .
-            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n" . "\n";
+	$installed = '.installed';
+	if (file_exists($installed)) {
+		$results_events = $tc_db->GetAll('SELECT * FROM `' . KU_DBPREFIX . 'events` WHERE `at` <= ' . time());
+		if (count($results_events) > 0) {
+			foreach($results_events AS $line_events) {
+				if ($line_events['name'] == 'sitemap') {
+					$tc_db->Execute('UPDATE `' . KU_DBPREFIX . 'events` SET `at` = ' . (time() + 21600) . ' WHERE `name` = "sitemap"');
+					if (KU_SITEMAP) {
+						$sitemap = '<?xml version="1.0" encoding="UTF-8"?' . '>' . "\n" .
+							'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n" . "\n";
+						$results = $tc_db->GetAll('SELECT `name`, `id` FROM `' . KU_DBPREFIX . 'boards` ORDER BY `name` ASC');
+						if (count($results) > 0) {
+							foreach($results AS $line) {
+								$sitemap .= '	<url>' . "\n" .
+								'		<loc>' . KU_BOARDSPATH . '/' . $line['name'] . '/</loc>' . "\n" .
+								'		<lastmod>' . date('Y-m-d') . '</lastmod>' . "\n" .
+								'		<changefreq>hourly</changefreq>' . "\n" .
+								'	</url>' . "\n";
 
-            $results = $tc_db->GetAll('SELECT `name`, `id` FROM `' . KU_DBPREFIX . 'boards` ORDER BY `name` ASC');
-            if (count($results) > 0) {
-              foreach($results AS $line) {
-                $sitemap .= '	<url>' . "\n" .
-                '		<loc>' . KU_BOARDSPATH . '/' . $line['name'] . '/</loc>' . "\n" .
-                '		<lastmod>' . date('Y-m-d') . '</lastmod>' . "\n" .
-                '		<changefreq>hourly</changefreq>' . "\n" .
-                '	</url>' . "\n";
-
-                $results2 = $tc_db->GetAll('SELECT `id`, `bumped` FROM `' . KU_DBPREFIX . 'posts` WHERE `boardid` = ' . $line['id'] . ' AND `parentid` = 0 AND `IS_DELETED` = 0 ORDER BY `bumped` DESC');
-                if (count($results2) > 0) {
-                  foreach($results2 AS $line2) {
-                    $sitemap .= '	<url>' . "\n" .
-                    '		<loc>' . KU_BOARDSPATH . '/' . $line['name'] . '/res/' . $line2['id'] . '.html</loc>' . "\n" .
-                    '		<lastmod>' . date('Y-m-d', $line2['bumped']) . '</lastmod>' . "\n" .
-                    '		<changefreq>hourly</changefreq>' . "\n" .
-                    '	</url>' . "\n";
-                  }
-                }
-              }
-            }
-
-            $sitemap .= '</urlset>';
-
-            $fp = fopen(KU_BOARDSDIR . 'sitemap.xml', 'w');
-            fwrite($fp, $sitemap);
-            fclose($fp);
-
-            unset($sitemap, $fp);
-          }
-        }
-      }
-      unset($results_events, $line_events);
-    }
-  }
+								$results2 = $tc_db->GetAll('SELECT `id`, `bumped` FROM `' . KU_DBPREFIX . 'posts` WHERE `boardid` = ' . $line['id'] . ' AND `parentid` = 0 AND `IS_DELETED` = 0 ORDER BY `bumped` DESC');
+								if (count($results2) > 0) {
+									foreach($results2 AS $line2) {
+										$sitemap .= '	<url>' . "\n" .
+										'		<loc>' . KU_BOARDSPATH . '/' . $line['name'] . '/res/' . $line2['id'] . '.html</loc>' . "\n" .
+										'		<lastmod>' . date('Y-m-d', $line2['bumped']) . '</lastmod>' . "\n" .
+										'		<changefreq>hourly</changefreq>' . "\n" .
+										'	</url>' . "\n";
+									}
+								}
+							}
+						}
+						$sitemap .= '</urlset>';
+						$fp = fopen(KU_BOARDSDIR . 'sitemap.xml', 'w');
+						fwrite($fp, $sitemap);
+						fclose($fp);
+						unset($sitemap, $fp);
+					}
+				}
+			}
+			unset($results_events, $line_events);
+		}
+	}
 }
-
-
-function stripslashes_deep($value)
-{
+function stripslashes_deep($value) {
 	$value = is_array($value) ?
-		array_map('stripslashes_deep', $value) :
-		stripslashes($value);
+	array_map('stripslashes_deep', $value) :
+	stripslashes($value);
 	return $value;
 }
-
 if (get_magic_quotes_gpc()) {
 	$_POST = array_map('stripslashes_deep', $_POST);
 	$_GET = array_map('stripslashes_deep', $_GET);
