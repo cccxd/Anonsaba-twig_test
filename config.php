@@ -1,45 +1,9 @@
 <?php
-/*
- * This file is part of kusaba.
- *
- * kusaba is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
- *
- * kusaba is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * kusaba; if not, write to the Free Software Foundation, Inc.,
- * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
-/**
- * Script configuration
- *
- * Tells the script what to call itself, where the database and other things are
- * located, along with define what features to enable.
- *
- * @package kusaba
- */
-/*
-To enable a feature, change the value to true:
-	define('KU_INSTANTREDIRECT', true);
-To disable a feature, change the value to false:
-	define('KU_INSTANTREDIRECT', false;
-
-To change the text value of a configuration, edit the text in the single quotes:
-	define('KU_NAME', 'kusaba');
-Becomes:
-	define('KU_NAME', 'Mychan');
-Warning: Do not insert single quotes in the value yourself, or else you will cause problems.  To overcome this, you use what is called escaping, which is the process of adding a backslash before the single quote, to show it is part of the string:
-	define('KU_NAME', 'Jason\'s chan');
-
-*/
 if (!headers_sent()) {
 	header('Content-Type: text/html; charset=utf-8');
 }
+include_once('inc/classes/site.class.php');
+$config = new SiteOption($value);
 
 $cf = array();
 
@@ -62,13 +26,6 @@ if (!$cache_loaded) {
 		$cf['KU_DBPASSWORD']      = ''; // Database password. On SQLite this has no effect.
 		$cf['KU_DBPREFIX']        = ''; // Database table prefix
 		$cf['KU_DBUSEPERSISTENT'] = false; // Use persistent connection to database
-
-	// Imageboard info
-		$cf['KU_NAME']      = 'anonsaba'; // The name of your site
-		$cf['KU_SLOGAN']    = '<em>"slogan!"</em>'; // Site slogan, set to nothing to disable its display
-		$cf['KU_HEADERURL'] = ''; // Full URL to the header image (or rotation script) to be displayed, can be left blank for no image
-		$cf['KU_IRC']       = ''; // IRC info, which will be displayed in the menu.  Leave blank to remove it
-		$cf['KU_BANREASON']	= ''; // This is the default ban reason that will automatically fill in the ban reason box
 	// Root 
 		// For the love of god change this 
 		$cf['KU_ROOT'] = 'CHANGEME'; //Can do SQL injections and can not be modified, suspended, or deleted / can clear the modlog. Make this your administrator account
@@ -100,56 +57,10 @@ if (!$cache_loaded) {
 		$cf['KU_TEMPLATEDIR']       = $cf['KU_ROOTDIR'] . 'dwoo/templates'; // Dwoo templates directory
 		$cf['KU_CACHEDTEMPLATEDIR'] = $cf['KU_ROOTDIR'] . 'dwoo/templates_c'; // Dwoo compiled templates directory.  This folder MUST be writable (you may need to chmod it to 755).  Set to '' to disable template caching
 
-	// CSS styles
-		$cf['KU_STYLES']        = 'burichan:futaba'; // Styles which are available to be used for the boards, separated by colons, in lower case.  These will be displayed next to [Home] [Manage] if KU_STYLESWIKUHER is set to true
-		$cf['KU_DEFAULTSTYLE']  = 'futaba'; // If Default is selected in the style list in board options, it will use this style.  Should be lower case
-		$cf['KU_STYLESWITCHER'] = true; // Whether or not to display the different styles in a clickable switcher at the top of the board
-		$cf['KU_DROPSWITCHER']	= false; // Whether or not to use a dropdown style switcher. False is use plaintext switcher, true is dropdown.
 
-		$cf['KU_TXTSTYLES']        = 'futatxt:buritxt'; // Styles which are available to be used for the boards, separated by colons, in lower case
-		$cf['KU_DEFAULTTXTSTYLE']  = 'futatxt'; // If Default is selected in the style list in board options, it will use this style.  Should be lower case
-		$cf['KU_TXTSTYLESWITCHER'] = true; // Whether or not to display the different styles in a clickable switcher at the top of the board
-
-		$cf['KU_MENUTYPE']          = 'normal'; // Type of display for the menu.  normal will add the menu styles and such as it normally would, plain will not use the styles, and will look rather boring
-		$cf['KU_MENUSTYLES']        = 'futaba:burichan'; // Menu styles
-		$cf['KU_DEFAULTMENUSTYLE']  = 'futaba'; // Default menu style
-		$cf['KU_MENUSTYLESWITCHER'] = true; // Whether or not to display the different styles in a clickable switcher in the menu
-
-	// Limitations
-		$cf['KU_NEWTHREADDELAY'] = 30; // Minimum time in seconds a user must wait before posting a new thread again
-		$cf['KU_REPLYDELAY']     = 7; // Minimum time in seconds a user must wait before posting a reply again
-		$cf['KU_LINELENGTH']     = 150; // Used when cutting long post messages on pages and placing the message too long notification
-
-	// Image handling
-		$cf['KU_THUMBWIDTH']       = 250; // Maximum thumbnail width
-		$cf['KU_THUMBHEIGHT']      = 250; // Maximum thumbnail height
-		$cf['KU_REPLYTHUMBWIDTH']  = 250; // Maximum thumbnail width (reply)
-		$cf['KU_REPLYTHUMBHEIGHT'] = 250; // Maximum thumbnail height (reply)
-		$cf['KU_CATTHUMBWIDTH']    = 50; // Maximum thumbnail width (catalog)
-		$cf['KU_CATTHUMBHEIGHT']   = 50; // Maximum thumbnail height (catalog)
-		$cf['KU_THUMBMETHOD']      = 'gd'; // Method to use when thumbnailing images in jpg, gif, or png format.  Options available: gd, imagemagick
-		$cf['KU_ANIMATEDTHUMBS']   = true; // Whether or not to allow animated thumbnails (only applies if using imagemagick)
-
-	// Post handling
-		$cf['KU_NEWWINDOW']       = true; // When a user clicks a thumbnail, whether to open the link in a new window or not
-		$cf['KU_MAKELINKS']       = true; // Whether or not to turn http:// links into clickable links
-		$cf['KU_NOMESSAGETHREAD'] = ''; // Text to set a message to if a thread is made with no text
-		$cf['KU_NOMESSAGEREPLY']  = ''; // Text to set a message to if a reply is made with no text
-
-	// Post display
-		$cf['KU_THREADS']         = 10; // Number of threads to display on a board page
-		$cf['KU_THREADSTXT']      = 15; // Number of threads to display on a text board front page
-		$cf['KU_REPLIES']         = 3; // Number of replies to display on a board page
-		$cf['KU_REPLIESSTICKY']   = 1; // Number of replies to display on a board page when a thread is stickied
-		$cf['KU_THUMBMSG']        = false; // Whether or not to display the "Thumbnail displayed, click image for full size." message on posts with images
-		$cf['KU_BANMSG']          = '<br /><font color="#FF0000"><b>(USER WAS BANNED FOR THIS POST)</b></font>'; // The text to add at the end of a post if a ban is placed and "Add ban message" is checked
-		$cf['KU_TRADITIONALREAD'] = false; // Whether or not to use the traditional style for multi-quote urls.  Traditional: read.php/board/thread/posts, Non-traditional: read.php?b=board&t=thread&p=posts
-		$cf['KU_YOUTUBEWIDTH']    = 250; // Width to display embedded YouTube videos
-		$cf['KU_YOUTUBEHEIGHT']   = 250; // Height to display embedded YouTube videos
 
 	// Pages
 		$cf['KU_FIRSTPAGE'] = 'board.html'; // Filename of the first page of a board.  Only change this if you are willing to maintain the .htaccess files for each board directory (they are created with a DirectoryIndex board.html, change them if you change this)
-		$cf['KU_DIRTITLE']  = false; // Whether or not to place the board directory in the board's title and at the top of the page.  true would render as "/b/ - Random", false would render as "Random"
 
 	// File tagging
 		$cf['KU_TAGS'] = array('Japanese' => 'J',
@@ -170,14 +81,10 @@ if (!$cache_loaded) {
 		$cf['KU_FIRSTLAST']       = true; // Whether or not to generate extra files for the first 100 posts/last 50 posts
 		$cf['KU_BLOTTER']         = true; // Whether or not to enable the blotter feature
 		$cf['KU_SITEMAP']         = false; // Whether or not to enable automatic sitemap generation (you will still need to link the search engine sites to the sitemap.xml file)
-		$cf['KU_APPEAL']          = true; // Whether or not to enable the appeals system
 	// Check if you're reading
 		$cf['readtest'] 	  = 'If you read this then delete this line'; //Just delete this line if you find it
 
 	// Misc config
-		$cf['KU_MODLOGDAYS']        = 7; // Days to keep modlog entries before removing them
-		$cf['KU_SALT']		    = 'ENTER RANDOM LETTERS/NUMBERS HERE'; // Type a bunch of random letters/numbers here, any large amount (35+ characters) will do
-		$cf['KU_RANDOMSEED']        = 'ENTER RANDOM LETTERS/NUMBERS HERE'; // Type a bunch of random letters/numbers here, any large amount (35+ characters) will do
 		$cf['KU_STATICMENU']        = false; // Whether or not to generate the menu files as static files, instead of linking to menu.php.  Enabling this will reduce load, however some users have had trouble with getting the files to generate
 		$cf['KU_GENERATEBOARDLIST'] = true; // Set to true to automatically make the board list which is displayed ad the top and bottom of the board pages, or false to use the boards.html file
 
@@ -190,11 +97,53 @@ if (!$cache_loaded) {
 	// Debug
 		$cf['KU_DEBUG'] = false; // When enabled, debug information will be printed (Warning: all queries will be shown publicly)
 
-	// Post-configuration actions, don't modify these
-		$cf['KU_VERSION']    = '1.0.5';
+/*******************************************************************************************************************************************/
+	// Post-configuration actions, don't modify anything below this seriously if you do it will break everything
+
+		$cf['KU_NAME']      = $config('name'); 
+		$cf['KU_SLOGAN']    = $config('slogan');
+		$cf['KU_HEADERURL'] = $config('headerurl');
+		$cf['KU_IRC']       = $config('IRC');
+		$cf['KU_BANREASON']	= $config('banreason');
+		$cf['KU_STYLES']        = $config('sitestyles');
+		$cf['KU_DEFAULTSTYLE']  = $config('defaultstyle');
+		$cf['KU_STYLESWITCHER'] = $config('styleswitcher');
+		$cf['KU_DROPSWITCHER']	= $config('dropswitcher');
+		$cf['KU_TXTSTYLES']        = $config('txtstyles');
+		$cf['KU_DEFAULTTXTSTYLE']  = $config('defaulttxtstyle');
+		$cf['KU_TXTSTYLESWITCHER'] = $config('txtswitcher');
+		$cf['KU_MENUSTYLES']        = $config('menustyles');
+		$cf['KU_DEFAULTMENUSTYLE']  = $config('defaultmenustyle');
+		$cf['KU_MENUSTYLESWITCHER'] = $config('menuswitcher');
+		$cf['KU_NEWTHREADDELAY'] = $config('newthreaddelay');
+		$cf['KU_REPLYDELAY']     = $config('replydelay');
+		$cf['KU_LINELENGTH']     = $config('linelength') * 15;
+		$cf['KU_THUMBWIDTH']       = $config('thumbwidth');
+		$cf['KU_THUMBHEIGHT']      = $config('thumbheight');
+		$cf['KU_REPLYTHUMBWIDTH']  = $config('replythumbwidth');
+		$cf['KU_REPLYTHUMBHEIGHT'] = $config('replythumbheight');
+		$cf['KU_CATTHUMBWIDTH']    = $config('catwidth');
+		$cf['KU_CATTHUMBHEIGHT']   = $config('catheight');
+		$cf['KU_THUMBMETHOD']      = $config('thumbmethod');
+		$cf['KU_ANIMATEDTHUMBS']   = $config('animatedthumbs');
+		$cf['KU_NEWWINDOW']       = $config('newwindow');
+		$cf['KU_MAKELINKS']       = $config('makelinks');
+		$cf['KU_NOMESSAGETHREAD'] = $config('nomessagethread');
+		$cf['KU_NOMESSAGEREPLY']  = $config('nomessagereply');
+		$cf['KU_THREADS']         = $config('threads');
+		$cf['KU_THREADSTXT']      = $config('threadstxt');
+		$cf['KU_REPLIES']         = $config('replies');
+		$cf['KU_REPLIESSTICKY']   = $config('replysticky'); 
+		$cf['KU_THUMBMSG']        = $config('thumbmsg');
+		$cf['KU_BANMSG']          = $config('banmsg');
+		$cf['KU_TRADITIONALREAD'] = $config('tradread');
+		$cf['KU_MODLOGDAYS']        = $config('modlogdays');
+		$cf['KU_SALT']		    = $config('salt');
+		$cf['KU_RANDOMSEED']        = $config('randomseed');
+		$cf['KU_DIRTITLE']  = $config('dirtitle');
+		$cf['KU_VERSION']    = $config('version');
 		$cf['KU_TAGS']       = serialize($cf['KU_TAGS']);
 		$cf['KU_TRIPS']      = serialize($cf['KU_TRIPS']);
-		$cf['KU_LINELENGTH'] = $cf['KU_LINELENGTH'] * 15;
 
 		if (substr($cf['KU_WEBFOLDER'], -2) == '//') { $cf['KU_WEBFOLDER'] = substr($cf['KU_WEBFOLDER'], 0, -1); }
 		if (substr($cf['KU_BOARDSFOLDER'], -2) == '//') { $cf['KU_BOARDSFOLDER'] = substr($cf['KU_BOARDSFOLDER'], 0, -1); }
