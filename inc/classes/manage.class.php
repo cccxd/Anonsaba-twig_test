@@ -244,6 +244,7 @@ class Manage {
 				$txtstyles = $config['txtstyles'];
 				$menustyles = $config['menustyles'];
 				$tpl_page .= '<form action="manage_page.php?action=siteconfig" method="post">
+					<input type="hidden" name="token" value="' . $_SESSION['token'] . '" />
 					<label for="sitename">'. _gettext('Site name') . ':</label>
 					<input type="text" name="sitename" /><br />
 					<label for="siteslogan">'._gettext('Site slogan').':</label>
