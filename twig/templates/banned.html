@@ -1,0 +1,68 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>YOU ARE BANNED!</title>
+<link rel="stylesheet" type="text/css" href="{{KU_BOARDSPATH}}/css/site_futaba.css" title="Futaba">
+<link rel="shortcut icon" href="{{KU_WEBPATH}}/favicon.ico">
+</head>
+<body>
+<h1>{{KU_NAME}}</h1>
+<h3>{{KU_SLOGAN|raw}}</h3>
+<div style="margin: 3em;">
+	<h2>&nbsp;YOU ARE BANNED! :\</h2>
+	<img src="{{KU_BOARDSPATH}}/youarebanned.jpg" style="float: right;" alt=":'(">
+	{% for ban in bans %}
+		
+		{% if ban.expired == 1 %}
+			You were banned from posting on
+		{% else %}
+			You have been banned from posting on
+		{% endif %} 
+		<strong>{% if ban.globalban == 1 %}All boards{% else%}|{{ban.boards}}|{% endif %}</strong> for the following reason:<br /><br />
+		<strong>{{ban.reason}}</strong><br /><br />
+		Your ban was placed on <strong>{{ban.at|date('F d y @ h:i:s A')}}</strong>, and
+		{% if ban.expired == 1 %}
+			expired on <strong>{{ban.until|date('F d y @ h:i:s A')}}</strong><br  />
+			<strong>This ban has already expired, this message is for your information only and will not be displayed again</strong>
+		{% else %}
+			{% if ban.until > 0 %}will expire on <strong>{{ban.until|date('F d y @ h:i:s A')}}</strong>{% else %}will not expire</strong>{% endif %}
+		{% endif %}
+		<br /><br />
+		{% if KU_APPEAL != '' and ban.expired == 0 %}
+			{% if ban.appealat == 0 %}
+				You may <strong>not</strong> appeal this ban.
+			{% elseif ban.appealat == -1 %}
+				Your appeal is currently pending review.
+				For reference, your appeal message is:<br />
+				<strong>{{ban.appeal}}</strong>
+			{% elseif ban.appealat == -2 %}
+				Your appeal was reviewed and denied. You may <strong>not</strong> appeal this ban again.
+				For reference, your appeal message was:<br />
+				<strong>{{ban.appeal}}</strong>
+			{% else %}
+				{% if ban.appealat < now %}
+					You may now appeal this ban.
+					<br /><br />
+					<form action="{{KU_BOARDSPATH}}/banned.php" method="post">
+						<input type="hidden" name="banid" value="{{ban.id}}" />
+						<label for="appealmessage">Appeal Message:</label>
+						<br />
+						<textarea name="appealmessage" rows="10" cols="50"></textarea>
+						<br /><input type="submit" value="Send Appeal" />
+					</form>
+				{% else %}
+					You may appeal this ban in <strong>{{ban.appealin}}</strong>.
+				{% endif %}
+			{% endif %}
+			<br />
+		{% endif %}
+			<hr />
+		
+
+	{% endfor %}
+
+<br />Your IP address is <strong>{{REMOTE_ADDR}}</strong>.<br /><br />
+	
+</div>
+</body>
+</html>

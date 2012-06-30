@@ -124,11 +124,11 @@ class Bans {
 		/* Set a cookie with the users current IP address in case they use a proxy to attempt to make another post */
 		setcookie('tc_previousip', $_SERVER['REMOTE_ADDR'], (time() + 604800), KU_BOARDSFOLDER);
 
-		require_once KU_ROOTDIR . 'lib/dwoo.php';
+		//require_once KU_ROOTDIR . 'lib/dwoo.php';
+require_once KU_ROOTDIR .'lib/twig/lib/Twig/Autoloader.php';
+		$twig_data=array('bans' => $bans, 'KU_BOARDSPATH' => KU_BOARDSPATH, 'KU_NAME' => KU_NAME, 'KU_SLOGAN' => KU_SLOGAN, 'REMOTE_ADDR' => $_SERVER['REMOTE_ADDR'], 'KU_APPEAL' => KU_APPEAL);
 
-		$dwoo_data->assign('bans', $bans);
-
-		return $dwoo->get(KU_TEMPLATEDIR .'/banned.tpl', $dwoo_data);
+		echo $twig->render('banned.html', $twig_data);
 	}
 
 	function UpdateHtaccess() {
