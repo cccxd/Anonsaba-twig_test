@@ -27,7 +27,7 @@ class Menu {
 
 	require_once KU_ROOTDIR .'lib/twig/lib/Twig/Autoloader.php';
 
-		$twig_data=array('boardpath' => getCLBoardPath());
+		$twig_data=array('boardpath' => getCLBoardPath() , 'KU_NAME' => KU_NAME, 'KU_MENUTYPE' => KU_MENUTYPE, 'KU_DEFAULTMENUSTYLE' => KU_DEFAULTMENUSTYLE, 'KU_WEBFOLDER' => KU_WEBFOLDER, 'KU_BOARDSPATH' => KU_BOARDSPATH, 'KU_MENUSTYLESWITCHER' => KU_MENUSTYLESWITCHER, 'KU_IRC' => KU_IRC);
 
 		if (KU_MENUTYPE == 'normal') {
 			$twig_data=array('styles' => explode(':', KU_MENUSTYLES));
@@ -57,7 +57,7 @@ class Menu {
 
 		for ($i = 0; $i < 2; $i++) {
 			if ($i == 0) $twig_data=array('showdirs' => 0);
-			else $twig_data->assign('showdirs', 1);
+			else $twig_data=array('showdirs' => 1);
 			if ($savetofile) {
 				if ($i == 0) {
 					file_put_contents(KU_ROOTDIR . $files[0], $twig->render('menu.html', $twig_data));
