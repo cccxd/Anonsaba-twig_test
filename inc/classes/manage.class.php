@@ -356,7 +356,8 @@ class Manage {
 						<div class="desc"><b>Traditional: read.php/board/thread/posts, Non-traditional: read.php?b=board&t=thread&p=posts</b></div><br />
 						<label for="dirtitle">'._gettext('Directory title').':</label>
 						<input type="checkbox" name="dirtitle" />
-						<div class="desc"><b>If this is on board names on board page will appear as /b/ - Random</b></div><br />';
+						<div class="desc"><b>If this is on board names on board page will appear as /b/ - Random</b></div><br /><br />
+						<input type="submit" name="submit" value="Submit" />';
 			}
 		}
 	}
