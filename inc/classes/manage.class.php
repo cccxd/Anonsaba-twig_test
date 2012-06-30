@@ -1,20 +1,28 @@
 <?php
 class Manage {
 	function Header() {
-		global $dwoo_data, $tpl_page;
+		global $twig_data, $tpl_page;
 		if (is_file(KU_ROOTDIR . 'inc/pages/modheader.html')) {
 			$tpl_includeheader = file_get_contents(KU_ROOTDIR . 'inc/pages/modheader.html');
 		} else {
 			$tpl_includeheader = '';
 		}
-		$dwoo_data->assign('includeheader', $tpl_includeheader);
+		$twig_data=array ('includeheader' => $tpl_includeheader);
         }
 	function Footer() {
-		global $dwoo_data, $dwoo, $tpl_page;
-		$dwoo_data->assign('page', $tpl_page);
+		global $twig_data, $twig, $tpl_page;
+		$twig_data=array('page' => $tpl_page, 'KU_DEFAULTSTYLE' => KU_DEFAULTSTYLE, 'KU_WEBPATH' => KU_WEBPATH,  'styles' =>  explode(':', KU_MENUSTYLES));
 		$board_class = new Board('');
-		$dwoo->output(KU_TEMPLATEDIR . '/manage.tpl', $dwoo_data);
-	}
+		/////
+///
+///
+///
+//$twig->output(KU_TEMPLATEDIR . '/manage.tpl', $twig_data);
+//
+//
+//	
+echo $twig->render('manage.html', $twig_data);
+}
         function CreateSalt() {
 		$chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 		$salt = '';
@@ -226,139 +234,6 @@ class Manage {
 			}
 		} else {
 			return false;
-		}
-	}
-	function siteconfig() {
-		global $tc_db, $tpl_page;
-		$this->RootOnly();
-		$tpl_page .= '<h2>'. ('Site configuration') . '</h2><br />';
-		$query = $tc_db->GetAll('SELECT * FROM `'.KU_DBPREFIX.'siteconfig`');
-		if (!$query) {
-			$tpl_page .= '<h3>'. _gettext('Please run siteconfig.php to use this feature.') .'</h3>';
-		} else {
-			$sitestyles = array();
-			$txtstyles = array();
-			$menustyles = array();
-			foreach ($query as $config) {
-				$sitestyles = $config['sitestyles'];
-				$txtstyles = $config['txtstyles'];
-				$menustyles = $config['menustyles'];
-				$tpl_page .= '<form action="manage_page.php?action=siteconfig" method="post">
-					<input type="hidden" name="token" value="' . $_SESSION['token'] . '" />
-					<label for="sitename">'. _gettext('Site name') . ':</label>
-					<input type="text" name="sitename" /><br />
-					<label for="siteslogan">'._gettext('Site slogan').':</label>
-					<input type="text" name="siteslogan" /><br />
-					<label for="banner">'._gettext('Header URL').':</label>
-					<input type="text" name="banner" />
-					<div class="desc"><b>Anything can go here</b></div><br />
-					<label for="IRC">'._gettext('IRC location').':</label>
-					<input type="text" name="IRC" /><br />
-					<label for="banreason">'._gettext('Ban reason').':</label>
-					<input type="text" name="banreason" /><br />
-					<label for="sitestyles">'._gettext('Site styles').':</label>
-					<input type="text" name="sitestyles" />
-					<div class="desc"><b>Seperate with : and Anonsaba.css = Anonsaba, or anonsaba.css = anonsaba</b></div><br />
-					<label>'. _gettext('Default site style') .':</label><br />
-					<label for="defaultstyle">'. $sitestyles . '</label>
-					<input type="checkbox" name="defaultstyle[]" value="'. $sitestyles . '" /><br />
-					<label for="siteswitcher">'._gettext('Allow site style to be changed').':</label>
-					<input type="checkbox" name="siteswitcher" /><br />
-					<label for"dropswitcher">'._gettext('Use drop down switcher for Site styles').':</label>
-					<input type="checkbox" name="dropswitcher" /><br />
-					<label for="txtstyles">'._gettext('Text board styles').':</label>
-					<input type="text" name="txtstyles" />
-					<div class="desc"><b>Seperate with : and Anonsaba.css = Anonsaba, or anonsaba.css = anonsaba</b></div><br />
-					<label>'. _gettext('Default text board style') .':</label><br />
-					<label for="defaulttxtstyle">'. $txtstyles . '</label>
-					<input type="checkbox" name="defaulttxtstyle[]" value="'. $txtstyles . '" /><br />
-					<label for="siteswitcher">'._gettext('Allow text board style to be changed').':</label>
-					<input type="checkbox" name="txtswitcher" /><br />
-					<label for="frames">'._gettext('Use frames as default page').':</label>
-					<input type="checkbox" name="frames" /><br />
-					<label for="menustyles">'._gettext('Menu styles').':</label>
-					<input type="text" name="menustyles" />
-					<div class="desc"><b>Seperate with commas and Anonsaba.css = Anonsaba, or anonsaba.css = anonsaba</b></div><br />
-					<label>'. _gettext('Default menu style') .':</label><br />
-					<label for="defaultmenustyle">'. $menustyles . '</label>
-					<input type="checkbox" name="defaultmenustyle[]" value="'. $menustyles . '" /><br />
-					<label for="menuswitcher">'._gettext('Allow menu style to be changed').':</label>
-					<input type="checkbox" name="menuswitcher" /><br />
-					<label for="newthreaddelay">'._gettext('New thread delay.').':</label>
-					<input type="text" name="newthreaddelay" />
-					<div class="desc"><b>Use seconds</b></div><br />
-					<label for="replydelay">'._gettext('Reply delay.').':</label>
-					<input type="text" name="replydelay" />
-					<div class="desc"><b>Use seconds</b></div><br />
-					<label for="linelength">'._gettext('Max line length').':</label>
-					<input type="text" name="linelength" />
-					<div class="desc"><b>Used when cutting long post messages on pages and placing the message too long notification</b></div><br />
-					<label for="thumbwidth">'._gettext('Thumbnail width').':</label>
-					<input type="text" name="thumbwidth" /><br />
-					<label for="thumgheight">'._gettext('Thumbnail height').':</label>
-					<input type="text" name="thumbwidth" /><br />
-					<label for="replywidth">'._gettext('Reply thumbnail width').':</label>
-					<input type="text" name="replywidth" /><br />
-					<label for="replyheight">'._gettext('Reply thumbnail height').':</label>
-					<input type="text" name="replyheight" /><br />
-					<label for="catwidth">'._gettext('Catalog thumbnail width').':</label>
-					<input type="text" name="catwidth" /><br />
-					<label for="catheight">'._gettext('Catalog thumbnail height').':</label>
-					<input type="text" name="catheight" /><br />
-					<label for="thumbmethod">'._gettext('Thumb nail method').':</label>
-					<select name="thumbmethod"><option value="gd"';
-					if ($config['thumbmethod'] == 'gd') { 
-						$tpl_page .= ' selected="selected"'; 
-					}
-					$tpl_page .= '>'. _gettext('GD') .'</option>
-					<option value="imagemagick"';
-					if ($config['thumbmethod'] == 'imagemagick') { 
-						$tpl_page .= ' selected="selected"'; 
-					}
-					$tpl_page .= '>'._gettext('Imagemagick').'</option></select>';
-					if ($config['thumbmethod'] == 'imagemagick') {
-						$tpl_page .= '<br /><label for="animatedthumb">'._gettext('Animated thumbnails').':</label>
-							<input type="checkbox" name="animatedthumb" />';
-					}
-					$tpl_page .= '<br />
-						<label for="newwindow">'._gettext('New window').':</label>
-						<input type="checkbox" name="newwindow" />
-						<div class="desc"><b>When a user clicks a thumbnail, whether to open the link in a new window or not</b></div><br />
-						<label for="clickablelinks">'._gettext('Clickable links').':</label>
-						<input type="checkbox" name="clickablelinks" />
-						<div class="desc"><b>Whether or not to turn whatever:// links into clickable links</b></div><br />
-						<label for="nomessagethread">'._gettext('No message thread').':</label>
-						<input type="text" name="nomessagethread">
-						<div class="desc"><b>Text to set as message to if a thread is made with no text</b></div><br />
-						<label for="nomessagepost">'._gettext('No message post').':</label>
-						<input type="text" name="nomessagepost">
-						<div class="desc"><b>Text to set as message if a reply is made with no text</b></div><br />
-						<label for="threaddisplay">'._gettext('Threads per page').':</label>
-						<input type="text" name="threaddisplay">
-						<div class="desc"><b>Number of threads to display on a board page</b></div><br />
-						<label for="replydisplay">'._gettext('Replies per thread').':</label>
-						<input type="text" name="replydisplay">
-						<div class="desc"><b>Number of replies to display on a board page</b></div><br />
-						<label for="txtthread">'._gettext('Text threads per page').':</label>
-						<input type="text" name="txtthread">
-						<div class="desc"><b>Number of threads to display on a text board front page</b></div><br />
-						<label for="stickydisplay">'._gettext('Sticky replies').':</label>
-						<input type="text" name="stickydisplay">
-						<div class="desc"><b>Number of replies to display on a board page when a thread is stickied</b></div><br />
-						<label for="thumbmsg">'._gettext('Display thumbnail message').':</label>
-						<input type="checkbox" name="thumbmsg">
-						<div class="desc"><b>Whether or not to display the "Thumbnail displayed, click image for full size." message on posts with images</b></div><br />
-						<label for="banmsg">'._gettext('Default ban message').':</label>
-						<input type="text" name="banmsg" />
-						<div class="desc"><font color="#FF0000"><b>(USER WAS BANNED FOR THIS POST)</b></font></div><br />
-						<label for="tradread">'._gettext('Traditional read').':</label>
-						<input type="checkbox" name="tradread" />
-						<div class="desc"><b>Traditional: read.php/board/thread/posts, Non-traditional: read.php?b=board&t=thread&p=posts</b></div><br />
-						<label for="dirtitle">'._gettext('Directory title').':</label>
-						<input type="checkbox" name="dirtitle" />
-						<div class="desc"><b>If this is on board names on board page will appear as /b/ - Random</b></div><br /><br />
-						<input type="submit" name="submit" value="Submit" />';
-			}
 		}
 	}
 	function pms() {
@@ -693,7 +568,7 @@ class Manage {
 			}
 		}
 	}
-	/* Edit Dwoo templates */
+	/* Edit twig templates */
 	function templates() {
 		global $tc_db, $tpl_page;
 		$this->AdministratorsOnly();
@@ -741,7 +616,7 @@ class Manage {
 						<textarea wrap=off rows=40 cols=100 name="templatedata">'. htmlspecialchars(file_get_contents(KU_TEMPLATEDIR . '/'. $file)) . '</textarea>
 						<label for="rebuild">'. _gettext('Rebuild HTML after edit?') .'</label>
 						<input type="checkbox" name="rebuild" checked="true" /><br /><br />
-						<div class="desc">'. _gettext('Visit <a href="http://wiki.dwoo.org/">http://wiki.dwoo.org/</a> for syntax information.') . '</div>
+						<div class="desc">'. _gettext('Visit <a href="http://wiki.twig.org/">http://wiki.twig.org/</a> for syntax information.') . '</div>
 						<div class="desc">'. sprintf(_gettext('To access Kusaba variables, use {%%KU_VARNAME}, for example {%%KU_BOARDSPATH} would be replaced with %s'), KU_BOARDSPATH) . '</div>
 						<div class="desc">'. _gettext('Enclose text in {t}{/t} blocks to allow them to be translated for different languages.') . '</div><br /><br />';
 					}
@@ -4008,7 +3883,7 @@ class Manage {
 					} else {
 						$post_threadorpost = 'post';
 					}
-					$tpl_page .= '</td><td>&#91;<a href="?action=delposts&boarddir='. $line['boardname'] . '&del'. $post_threadorpost . 'id='. $line['id'] . '" title="Delete" onclick="return confirm(\'Are you sure you want to delete this thread/post?\');">D</a>&nbsp;<a href="'. KU_CGIPATH . '/manage_page.php?action=delposts&boarddir='. $line['boardname'] . '&del'. $post_threadorpost . 'id='. $line['id'] . '&postid='. $line['id'] . '" title="Delete &amp; Ban" onclick="return confirm(\'Are you sure you want to delete and ban this poster?\');">&amp;</a>&nbsp;<a href="?action=bans&banboard='. $line['boardname'] . '&banpost='. $line['id'] . '" title="Ban">B</a>&#93;&nbsp;&#91;<a href="?action=bans&banboard='.$line['boardname'].'&banpost='.$line['id'].'&instant=y" title="Proxy" onclick="return confirm(\'Are you sure you want to delete and ban this poster for using a proxy?\');">P</a>&#93;&nbsp;&#91;<a href="?action=delposts&boarddir='.$line['boardname'].'&del'.$post_threadorpost.'id='.$line['id'].'&postid='.$line['id'].'&cp=y" title="CP" onclick="return confirm(\'Are you sure you want to delete and ban this poster for CP?\');">CP</a>&#93;</td></tr>';
+					$tpl_page .= '</td><td>&#91;<a href="?action=delposts&boarddir='. $line['boardname'] . '&del'. $post_threadorpost . 'id='. $line['id'] . '" title="Delete" onclick="return confirm(\'Are you sure you want to delete this thread/post?\');">D</a>&nbsp;<a href="'. KU_CGIPATH . '/manage_page.php?action=delposts&boarddir='. $line['boardname'] . '&del'. $post_threadorpost . 'id='. $line['id'] . '&postid='. $line['id'] . '" title="Delete &amp; Ban" onclick="return confirm(\'Are you sure you want to delete and ban this poster?\');">&amp;</a>&nbsp;<a href="?action=bans&banboard='. $line['boardname'] . '&banpost='. $line['id'] . '" title="Ban">B</a>&#93;&nbsp;&#91;<a href="?action=bans&banboard='.$line['boardname'].'&banpost='.$line['id'].'&instant=y" title="Proxy" onclick="return confirm(\'Are you sure you want to delete and ban this poster for using a proxy?\');">P</a>&#93;&nbsp;&#91;<a href="action=delposts&boarddir='.$line['boardname'].'&del'.$post_threadorpost.'id='.$line['id'].'&postid='.$line['id'].'&cp=y" title="CP" onclick="return confirm(\'Are you sure you want to delete and ban this poster for CP?\');">CP</a>&#93;</td></tr>';
 				}
 				$tpl_page .= '</table>';
 				$reviewsql = substr($reviewsql, 0, -3) . ' LIMIT '. count($results);

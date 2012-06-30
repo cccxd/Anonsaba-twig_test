@@ -23,14 +23,14 @@
 class Menu {
 
 	function GetMenu($savetofile = false, $option = false) {
-		global $tc_db, $dwoo, $dwoo_data, $kusabaxorg;
+		global $tc_db, $twig, $twig_data, $kusabaxorg;
 
-		require_once KU_ROOTDIR.'lib/dwoo.php';
+	require_once KU_ROOTDIR .'lib/twig/lib/Twig/Autoloader.php';
 
-		$dwoo_data->assign('boardpath', getCLBoardPath());
+		$twig_data=array('boardpath' => getCLBoardPath());
 
 		if (KU_MENUTYPE == 'normal') {
-			$dwoo_data->assign('styles', explode(':', KU_MENUSTYLES));
+			$twig_data=array('styles' => explode(':', KU_MENUSTYLES));
 		}
 
 		if ($savetofile) {
@@ -39,7 +39,7 @@ class Menu {
 			$files = array('menu.php', 'menu.php');
 		}
 
-		$dwoo_data->assign('files', $files);
+		$twig_data=array('files' => $files);
 
 		$sections = Array();
 
@@ -53,26 +53,26 @@ class Menu {
 				}
 			}
 		}
-		$dwoo_data->assign('boards', $sections);
+		$twig_data=array('boards' => $sections);
 
 		for ($i = 0; $i < 2; $i++) {
-			if ($i == 0) $dwoo_data->assign('showdirs', 0);
-			else $dwoo_data->assign('showdirs', 1);
+			if ($i == 0) $twig_data=array('showdirs' => 0);
+			else $twig_data->assign('showdirs', 1);
 			if ($savetofile) {
 				if ($i == 0) {
-					file_put_contents(KU_ROOTDIR . $files[0], $dwoo->get(KU_TEMPLATEDIR . '/menu.tpl', $dwoo_data));
+					file_put_contents(KU_ROOTDIR . $files[0], $twig->render('menu.html', $twig_data));
 				} else {
-					file_put_contents(KU_ROOTDIR . $files[1], $dwoo->get(KU_TEMPLATEDIR . '/menu.tpl', $dwoo_data));
+					file_put_contents(KU_ROOTDIR . $files[1], $twig->render('menu.html', $twig_data));
 				}
 			} else {
 				if ($i == 0) {
-					$menu_nodirs = $dwoo->get(KU_TEMPLATEDIR . '/menu.tpl', $dwoo_data);
+					$menu_nodirs = $twig->render('menu.html', $twig_data);
 					if ($option == 'nodirs') {
 						return $menu_nodirs;
 					}
 				} else {
 					if ($option == 'dirs') {
-						$menu_dirs = $dwoo->get(KU_TEMPLATEDIR . '/menu.tpl', $dwoo_data);
+						$menu_dirs = $twig->render('menu.html', $twig_data);
 						return $menu_dirs;
 					}
 				}

@@ -31,13 +31,15 @@ session_set_cookie_params(60 * 60 * 24 * 100); /* 100 Days */
 session_start();
 
 require 'config.php';
-require KU_ROOTDIR . 'lib/dwoo.php';
+//require KU_ROOTDIR . 'lib/dwoo.php';
 require KU_ROOTDIR . 'inc/functions.php';
 require KU_ROOTDIR . 'inc/classes/manage.class.php';
 require KU_ROOTDIR . 'inc/classes/board-post.class.php';
 require KU_ROOTDIR . 'inc/classes/bans.class.php';
-
-$dwoo_data->assign('styles', explode(':', KU_MENUSTYLES));
+require_once KU_ROOTDIR .'lib/twig/lib/Twig/Autoloader.php';
+//$dwoo_data->assign('styles', explode(':', KU_MENUSTYLES));
+//global $twig_data;
+//$twig_data=array ();
 
 
 $manage_class = new Manage();
