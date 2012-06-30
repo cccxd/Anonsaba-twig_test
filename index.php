@@ -1,12 +1,12 @@
 <?php
 	require_once 'config.php';
 	require_once KU_ROOTDIR . 'inc/functions.php';
-	require_once KU_ROOTDIR . 'lib/dwoo.php';
-	global $tc_db, $dwoo_data;
+	require_once KU_ROOTDIR .'lib/twig/lib/Twig/Autoloader.php';
+	global $tc_db;
 	if (file_exists("install.php")) {
 		die('You are seeing this message because either you haven\'t ran the install file yet, and can do so <a href="install.php">here</a>, or already have, and <strong>must delete it</strong>.');
 	}
-	$dwoo_tpl = new Dwoo_Template_File(KU_TEMPLATEDIR . '/index.tpl');
+	
 	// News/FAQ/Rules
 	if ($_GET['view'] == '') {
 		$entries = $tc_db->GetAll("SELECT * FROM `" . KU_DBPREFIX . "front` WHERE `page` = 0 ORDER BY `timestamp` DESC LIMIT 5 OFFSET ".($_GET['page'] * 5));
@@ -56,15 +56,26 @@
 	}
 	$query = $tc_db->GetAll('SELECT * FROM `'.KU_DBPREFIX.'posts` WHERE `IS_DELETED` = 0 ORDER BY `timestamp` DESC LIMIT '.$limit.'');
 	
-	$dwoo_data->assign('recentposts', $query);
-	$dwoo_data->assign('pages', ($pages/5));
-	$dwoo_data->assign('totalposts', $totalposts);
-	$dwoo_data->assign('currentusers', $currentusers);
-	$dwoo_data->assign('activecontent', $activecontent);
-	$dwoo_data->assign('boards', $sections);
-	$dwoo_data->assign('entries', $entries);
-	$dwoo_data->assign('section', $boardsection);
-	$dwoo_data->assign('ku_webpath', getCWebPath());
-	$dwoo->output($dwoo_tpl, $dwoo_data);
+
+
+echo $twig->render('index.html',  array('recentposts' => $query,
+	'pages' => ($pages/5),
+	'totalposts' => $totalposts,
+	'currentusers' => $currentusers,
+	'activecontent' => $activecontent,
+	'boards' => $sections,
+	'entries' => $entries,
+	//'section' => $boardsection,
+	'ku_webpath' => getCWebPath(),
+	'KU_WEBFOLDER' => KU_WEBFOLDER,
+	'KU_NAME' => KU_NAME,
+	'KU_SLOGAN' => KU_SLOGAN,
+	'KU_BOARDSFOLDER' => KU_BOARDSFOLDER,
+	'kU_BOARDSPATH' => KU_BOARDSPATH,
+	'KU_CGIPATH' => KU_CGIPATH,
+	'view' =>  $_GET['view'],
+	'page' => $_GET['page']
+ ));
+
 	
 ?>

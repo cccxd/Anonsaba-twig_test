@@ -26,12 +26,19 @@
 session_start();
 
 require 'config.php';
-require KU_ROOTDIR . 'lib/dwoo.php';
-require KU_ROOTDIR . 'inc/functions.php';
+require KU_ROOTDIR. 'inc/functions.php';
 require KU_ROOTDIR . 'inc/classes/manage.class.php';
 
+require_once KU_ROOTDIR .'lib/twig/lib/Twig/Autoloader.php';
+
+
+
+
+
+
+ 
+
 $manage_class = new Manage();
-$dwoo_data->assign('styles', explode(':', KU_MENUSTYLES));
 
 
 $tpl_links = '';
@@ -188,7 +195,5 @@ function section_html($section, $abbreviation, $show=true) {
 	</h2>
 	<div id="' . $abbreviation . '" style="' . ($show ? '' : 'display:none') . '">';
 }
-
-$dwoo_data->assign('links', $tpl_links);
-$dwoo->output(KU_TEMPLATEDIR . '/manage_menu.tpl', $dwoo_data);
+echo $twig->render('manage_menu.html', array('links' => $tpl_links, 'styles' =>explode(':', KU_MENUSTYLES), 'KU_DEFAULTSTYLE' => KU_DEFAULTSTYLE ));
 ?>

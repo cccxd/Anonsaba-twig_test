@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>{{KU_NAME}}</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="shortcut icon" href="{{KU_WEBFOLDER}}favicon.ico" />
+<link rel="stylesheet" type="text/css" href="{{KU_WEBFOLDER}}css/img_globals.css">
+<link rel="stylesheet" type="text/css" href="{{KU_WEBFOLDER}}css/front.css" />
+<link rel="stylesheet" type="text/css" href="{{KU_WEBFOLDER}}css/site_front.css" />
+<link rel="stylesheet" type="text/css" href="{{KU_WEBFOLDER}}css/site_global.css">
+
+<script type="text/javascript" src="{{KU_WEBFOLDER}}lib/javascript/gettext.js"></script>
+<script type="text/javascript" src="{{KU_WEBFOLDER}}lib/javascript/kusaba.js"></script>
+<script type="text/javascript" src="{{KU_WEBFOLDER}}lib/javascript/menu.js"></script>
+<script type="text/javascript" src="{{KU_WEBFOLDER}}lib/javascript/protoaculous-compressed.js"></script>
+<script type="text/javascript"><!--
+	        var val = 0;
+	        var loopid;
+ 		var ku_boardspath = '{{KU_BOARDSPATH}}';
+	        var ku_cgipath = '{{KU_CGIPATH}}';
+ 
+	//--></script>
+{% raw %}
+<script type="text/javascript">
+<!--
+    function toggle_boards(button, area) {
+	var tog=document.getElementById(area);
+	if(tog.style.display)    {
+		tog.style.display='';
+	}    else {
+		tog.style.display='none';
+	}
+	button.innerHTML=(tog.style.display)?'&plus;':'&minus;';
+	set_cookie('nav_show_'+area, tog.style.display?'0':'1', 30);
+//-->
+</script>
+{% endraw %}
+
+</head>
+<body>
+  <header role="banner">
+     <center><h1>{{KU_NAME}}</h1><br /><h3>{{KU_SLOGAN|raw}}</h3></center>
+  </header>
+    <br class="clear" />
+  <section id="recent">
+    <section id="posts">
+      <h3>Recent Posts</h3>
+			<ul>
+      
+ {% for post in recentposts %}
+<li><a  href="{{KU_WEBFOLDER}}{{post.boardname}}/res/{% if post.parentid ==0 %}{{post.id}}.html{% else %}{{post.parentid}}.html#{{post.id}}{% endif %}" onclick="return highlight('{{post.id}}', true);" 
+class="ref|{{post.boardname}}|{% if post.parentid == 0 %}{{post.id}}{% else %}{{post.parentid}}{% endif %}|{{post.id}}">
+&gt;&gt;&gt;/{{post.boardname}}/{{post.id}}
+
+</a> -
+  {{post.message|striptags("")|slice(0, 120)|raw}}
+{% if post.message|length > 60 %}...{% endif %} 
+
+                      {% endfor %}
+		</ul>
+           </section>
+      </section>
+    <section id="images">
+      <h3>Stats</h3>
+			<ul>
+                        Total Posts: {{totalposts}}<br />
+                        Current Number of Users: {{currentusers}}<br />
+                        Active Content: {{activecontent}}
+			</ul>
+    </section>
+    <br class="clear" />
+  </section>
+  
+  
+
+
+
+
+<div class="wrap">
+  <section id="news">
+    <header>
+      <ul>
+        <li{% if view == '' %} class="selected"{% endif %}>{% if view != '' %}<a href="{{KU_WEBFOLDER}}{% if frame %}?frame{% endif %}">{% endif %}News{% if view != '' %}</a>{% endif %}</li>
+        <li{% if view == 'faq' %} class="selected"{% endif %}>{% if view != 'faq' %}<a href="{{KU_WEBFOLDER}}index.php?view=faq{% if frame %}&frame{% endif %}">{% endif %}FAQ{% if view != 'faq' %}</a>{% endif %}</li>
+        <li{% if view == 'rules' %} class="selected"{% endif %}>{% if view != 'rules' %}<a href="{{KU_WEBFOLDER}}index.php?view=rules{% if frame %}&frame{% endif %}">{% endif %}Rules{% if view != 'rules' %}</a>{% endif %}</>
+        <li{% if view == 'frames' %} class="selected"{% endif %}>{% if view != 'frames' %}<a href="{{KU_WEBFOLDER}}kusaba.php">{% endif %}Frames{% if view != 'frames' %}</a>{% endif %}</li>      
+</ul>
+      <br class="clear" />
+    </header>
+    
+{% for item in entries %}
+    <article>
+      <h4 id="id{{item.id}}">
+       <a class="permalink" href="#id{{item.id}}">#</a> <span class="newssub">{{item.subject}} {% if view == 'news' or view == '' %} by {% if item.email != '' %} <a href="mailto:{{item.email}}">{% endif %} {{item.poster}} {% if item.email != '' %} </a>{% endif %}  - {{item.timestamp|date('m/d/y @ h:i:s A')}}{{pages}} {% endif %} </span>
+      </h4>
+      
+      <p>
+      {{item.message|raw}}
+      </p>
+    </article>
+{% endfor %} 
+    
+{% if view == '' %}
+    <footer>
+{% if pages -1 > 0 %}
+  {% for i in range(0, pages ) %}
+      [ {% if page != i %}<a href="{{KU_WEBFOLDER}}index.php?page={{i}}{% if frame %}&frame{% endif %}">{% endif %}{{i}}{% if page != i %}</a>{% endif %} ]
+  {% endfor %}
+{% else %}
+[ 0 ]
+{% endif %}
+    </footer>
+{% endif %}
+  </section>
+  <section id="boardlist">
+    <h3>Boards</h3>
+{% for section in boards %}
+
+      <h4><span class="section_toggle" onclick="toggle_boards('this, {{board.desc}}');" title="Click to show/hide">{% if section.hidden == 1 %}+{% else %}&minus;{% endif %}</span>&nbsp;{{section.name}}</h4>
+      <div style="{% if section.hidden == 1 %} display: none;{% endif %}" id="{{board.desc}}" name="{{board.desc}}">
+      <ul>
+{% for board in section.boards %}
+        <li><a href="{{KU_WEBFOLDER}}{{board.name}}/" title="{{KU_NAME}} - {{board.desc}}">&bull; {{board.desc}}
+        {% if board.locked == 1 %}
+               &nbsp;<img src="{{KU_BOARDSFOLDER}}/css/locked.gif" border="0" alt="Locked">
+	{% endif %}
+        </a></li>
+{% else %}
+        <li>No boards</li>
+{% endfor %}
+      <br style="{% if section.hidden == 1 %} display: none;{% endif %}" class="clear" />
+      </ul>
+      </div>
+
+{% endfor %}
+  </section>
+  </div>
+
+
+
+
+  <div class="wrap hfix">
+  <div class="lcol"></div>
+  <div class="rcol"></div>
+  </div>
+  <footer>
+{{KU_NAME}} is powered by <a href="http://anonsaba.net/" target="_top">Anonsaba {{version}}</a>
+  </footer>
+</body>
+</html>
+
