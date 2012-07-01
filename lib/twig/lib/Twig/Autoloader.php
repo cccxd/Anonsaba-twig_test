@@ -45,8 +45,8 @@ class Twig_Autoloader
 
 Twig_Autoloader::register();
 
-$loader = new Twig_Loader_Filesystem (KU_ROOTDIR .'/twig/templates');
+$loader = new Twig_Loader_Filesystem (KU_ROOTDIR .'twig/templatesss');
 $twig = new Twig_Environment($loader, array(
-    'cache' => KU_ROOTDIR .'/twig/templates_c', 'auto_reload' => true));
+    'cache' => KU_ROOTDIR .'twig/templates_c', 'auto_reload' => true));
 
 

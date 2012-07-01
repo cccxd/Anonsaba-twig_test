@@ -13,14 +13,7 @@ class Manage {
 		global $twig_data, $twig, $tpl_page;
 		$twig_data=array('page' => $tpl_page, 'KU_DEFAULTSTYLE' => KU_DEFAULTSTYLE, 'KU_WEBPATH' => KU_WEBPATH,  'styles' =>  explode(':', KU_MENUSTYLES));
 		$board_class = new Board('');
-		/////
-///
-///
-///
-//$twig->output(KU_TEMPLATEDIR . '/manage.tpl', $twig_data);
-//
-//
-//	
+	
 echo $twig->render('manage.html', $twig_data);
 }
         function CreateSalt() {

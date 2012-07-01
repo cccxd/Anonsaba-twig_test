@@ -91,7 +91,7 @@ class="ref|{{post.boardname}}|{% if post.parentid == 0 %}{{post.id}}{% else %}{{
 {% for item in entries %}
     <article>
       <h4 id="id{{item.id}}">
-       <a class="permalink" href="#id{{item.id}}">#</a> <span class="newssub">{{item.subject}} {% if view == 'news' or view == '' %} by {% if item.email != '' %} <a href="mailto:{{item.email}}">{% endif %} {{item.poster}} {% if item.email != '' %} </a>{% endif %}  - {{item.timestamp|date('m/d/y @ h:i:s A')}}{{pages}} {% endif %} </span>
+       <a class="permalink" href="#id{{item.id}}">#</a> <span class="newssub">{{item.subject}} {% if view == 'news' or view == '' %} by {% if item.email != '' %} <a href="mailto:{{item.email}}">{% endif %} {{item.poster}} {% if item.email != '' %} </a>{% endif %}  - {{item.timestamp|date('m/d/y @ h:i:s A')}} {% endif %} </span>
       </h4>
       
       <p>

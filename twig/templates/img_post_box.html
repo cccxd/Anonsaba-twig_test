@@ -1,0 +1,251 @@
+{% if nsfwpost != '' and board.enableads == 1 and board.boardclass == 1 %}
+<table align="center" width="auto">
+<tbody>
+<tr>
+	<td width="175" valign="middle" align="center">
+			{{nsfwpost}}
+</td>
+	&nbsp;&nbsp;&nbsp;
+<td align="center" width="175">
+{% endif %}
+
+{% if sfwpost != '' and board.enableads == 1 and board.boardclass == 0 %}
+<table align="center" width="175">
+<tbody>
+<tr>
+	<td width="175" valign="middle" align="center">
+			{{sfwpost}}
+</td>
+	&nbsp;&nbsp;&nbsp;
+<td align="center" width="175">
+{% endif %}
+<div class="postarea">
+<a id="postbox"></a>
+<form name="postform" id="postform" action="{{KU_CGIPATH}}/board.php" method="post" enctype="multipart/form-data"
+{% if board.enablecaptcha == 1 %}
+	onsubmit="return checkcaptcha('postform');"
+{% endif %}
+>
+<input type="hidden" name="board" value="{{board.name}}" />
+<input type="hidden" name="replythread" value="<!sm_threadid>" />
+<input type="hidden" name="token" value="{{tokengen}}" />
+{% if board.maximagesize > 0 %}
+	<input type="hidden" name="MAX_FILE_SIZE" value="{{board.maximagesize}}" />
+{% endif %}
+<input type="text" name="email" size="28" maxlength="75" value="" style="display: none;" />
+<table class="postform">
+	<tbody>
+	{% if board.forcedanon != 1 %}
+		<tr>
+			<td class="postblock">
+				Name</td>
+			<td>
+				<input type="text" name="name" size="28" maxlength="75" accesskey="n" />
+			</td>
+		</tr>
+	{% endif %}
+        {% if board.enableemail == 1 %}
+        <tr>
+                <td class="postblock">
+                        Email</td>
+                <td>
+                        <input type="text" name="em" size="28" maxlength="75" accesskey="e" />
+                </td>
+        </tr>
+        {% endif %}
+	<tr>
+		<td class="postblock">
+			Subject</td>
+		<td>
+			{% spaceless %}<input type="text" name="subject" size="35" maxlength="75" accesskey="s" />&nbsp;<input type="submit" value=
+			{% if KU_QUICKREPLY and replythread == 0 %}
+				"Submit" accesskey="z" />&nbsp;(<span id="posttypeindicator">New thread</span>)
+			{% elseif KU_QUICKREPLY and replythread != 0 %}
+				Reply" accesskey="z" />&nbsp;(<span id="posttypeindicator">Reply to thread <!sm_threadid></span>)
+			{% else %}
+				Submit" accesskey="z" />
+			{% endif %}{% endspaceless %}
+		</td>
+	</tr>
+	<tr>
+		<td class="postblock">
+			Message
+		</td>
+		<td>
+			<textarea name="message" cols="48" rows="4" accesskey="m"></textarea>
+		</td>
+	</tr>
+	{% if board.enablecaptcha == 1 and replythread == 0 %}
+
+		<tr>
+                        <td class="postblock">
+                        Captcha</td>
+                        {% raw %}<script type="text/javascript"> var RecaptchaOptions = { theme : 'clean' };</script>{% endraw %}
+			<td colspan="2">
+                        {{recaptcha}}
+			</td>
+
+		</tr>
+
+	{% endif %}
+	{% if board.uploadtype == 0 or board.uploadtype == 1 %}
+		{% if board.max_files > 1 and replythread != 0 %}
+			{% for file in files %}
+				<tr id="file{{loop.index}}"{% if not loop.first %} style="display:none"{% endif %}>
+					<td class="postblock">
+						File {{loop.index}}
+					</td>
+					<td>				
+					<input {% if not loop.last %}onchange="document.getElementById('file{{loop.index}}').style.display = '';"{% endif %} type="file" name="imagefile[]" size="35" accesskey="f" /> 
+                   	                {% if board.enableemail == 0 and loop.first %}
+                                	<input type="checkbox" name="em" id="sage" value="sage" accesskey="e" /><label for="sage"> No bump</label>
+                        		{% endif %}
+					{% if loop.first and replythread == 0 and board.enablenofile == 1 %}
+						<input type="checkbox" name="nofile" id="nofile" accesskey="q" /><label for="nofile"> No File</label>
+					{% endif %}
+					</td>
+				</tr>
+			{% endfor %}
+		<tr>
+			<td class="postblock">
+				File URL
+			</td>
+			<td>
+				<input type="text" name="fileurl" size="48" accesskey="h" />
+			</td>
+		</tr>
+		{% else %}
+        	<tr>
+ 			<td class="postblock">
+				File
+			</td>
+			<td>
+			<input type="file" name="imagefile[]" size="35" accesskey="f" />
+			{% if replythread == 0 and board.enablenofile == 1 %}
+				<input type="checkbox" name="nofile" id="nofile" accesskey="q" /><label for="nofile"> No File</label>
+			{% endif %}
+                        {% if board.enableemail == 0 %}
+                                <input type="checkbox" name="em" id="sage" value="sage" accesskey="e" /><label for="sage"> No bump</label>
+                        {% endif %}
+			</td>
+		</tr>
+            {% if board.fileurl == 1 %}
+		<tr>
+			<td class="postblock">
+				File URL
+			</td>
+			<td>
+				<input type="text" name="fileurl" size="48" accesskey="h" />
+			</td>
+		</tr>
+            {% endif %} 
+  	{% endif %}
+{% endif %} 
+	{% if (board.uploadtype == 1 or board.uploadtype == 2) and board.embeds_allowed != '' %}
+		<tr>
+			<td class="postblock">
+				Embed
+			</td>
+			<td>
+				<input type="text" name="embed" size="28" maxlength="75" accesskey="e" />&nbsp;<select name="embedtype">
+				{% for embed in embeds %}
+{#					{% if in_array(embed.filetype,explode(',' board.embeds_allowed)) %}
+						<option value="{{embed.name|lower}}">{{embed.name}}</option>
+					{% endif %}
+#}
+				{% endfor %}
+				</select>
+				<a class="rules" href="#postbox" onclick="window.open('{{KU_WEBPATH}}/embedhelp.php','embedhelp','toolbar=0,location=0,status=0,menubar=0,scrollbars=0,resizable=0,width=300,height=210');return false;">Help</a>
+			</td>
+		</tr>
+	{% endif %}
+		<tr>
+			<td class="postblock">
+				Password
+			</td>
+			<td>
+				<input type="password" name="postpassword" size="8" accesskey="p" />&nbsp;(For post and file deletion)
+			</td>
+		</tr>
+		<tr id="passwordbox"><td></td><td></td></tr>
+		<tr>
+			<td colspan="2" class="rules">
+				<ul style="margin-left: 0; margin-top: 0; margin-bottom: 0; padding-left: 0;">
+					<li>Supported file types are:
+					{if $board.filetypes_allowed neq ''}
+						{foreach name=files item=filetype from=$board.filetypes_allowed}
+							{$filetype.filetype|upper}{if $.foreach.files.last}{else}, {/if}
+						{/foreach}
+					{else}
+						None
+					{/if}
+					</li>
+					<li>Maximum file size allowed is {math "round(x/1024)" x=$board.maximagesize} KB.</li>
+                                        <li>{t 1=$board.max_files}Maximum number of files per upload is %1.</li>
+					<li>{t 1=%KU_THUMBWIDTH 2=%KU_THUMBHEIGHT}Images greater than %1x%2 pixels will be thumbnailed.</li>
+					<li>{t 1=$board.uniqueposts}Currently %1 unique user posts.
+					{if $board.enablecatalog eq 1} 
+						<a href="{{KU_BOARDSFOLDER}}{{board.name}}/catalog.html">View catalog</a>
+					{/if}
+					</li>
+				</ul>
+			{% if KU_BLOTTER and blotter %}
+				<br />
+				<ul style="margin-left: 0; margin-top: 0; margin-bottom: 0; padding-left: 0;">
+				<li style="position: relative;">
+					<span style="color: red;">
+				Blotter updated: {{blotter_updated|date('Y - m - d')}}
+				</span>
+					<span style="color: red;text-align: right;position: absolute;right: 0px;">
+						<a href="#" onclick="javascript:toggleblotter(true);return false;">Show/Hide</a> <a href="{{KU_WEBPATH}}/blotter.php">Show All</a>
+					</span>
+				</li>
+				{{blotter}}
+				</ul>
+				<script type="text/javascript"><!--
+				if (getCookie('ku_showblotter') == '1') {
+					toggleblotter(false);
+				}
+				--></script>
+			{% endif %}
+			</td>
+		</tr>
+	</tbody>
+
+</table>
+</form>
+<hr />
+{% if topads != '' and board.enableads == 1 and board.boardclass == 0 %}
+	<div class="content ads">
+		<center> 
+			{{topads}}
+		</center>
+	</div>
+	<hr />
+{% endif %}
+{% if nsfwtop != '' and board.enableads == 1 and board.boardclass == 1 %}
+	<div class="content ads">
+		<center> 
+			{{nsfwtop}}
+		</center>
+	</div>
+	<hr />
+{% endif %}
+</div>
+	{% if nsfwpost != '' and board.enableads == 1 and board.boardclass == 1 %}
+		</td>	&nbsp;&nbsp;&nbsp;
+<td width="175" valign="middle" align="center">
+{{nsfwpost}}
+</td></tr>
+</tbody></table>
+{% endif %}
+{% if sfwpost != '' and board.enableads == 1 and board.boardclass == 0 %}
+		</td>	&nbsp;&nbsp;&nbsp;
+<td width="175" valign="middle" align="center">
+{{sfwpost}}
+</td></tr>
+</tbody></table>
+{% endif %}
+<script type="text/javascript"><!--
+				set_inputs("postform");
+				//--></script>

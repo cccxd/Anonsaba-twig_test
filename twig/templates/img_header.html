@@ -1,0 +1,106 @@
+<script type="text/javascript" src="{{KU_WEBFOLDER}}lib/javascript/protoaculous-compressed.js"></script>
+<link rel="stylesheet" type="text/css" href="{{KU_WEBFOLDER}}css/img_global.css" />
+
+ {% for style in ku_styles %}
+	<link rel="{% if style !=ku_defaultstyle %}alternate {% endif %}stylesheet" type="text/css" href="/css/{{style}}.css" title={{style}} />
+{% endfor %}
+
+
+
+
+{% if locale == 'ja' %}
+	{% raw %}
+	<style type="text/css">
+		*{
+			font-family: IPAMonaPGothic, Mona, 'MS PGothic', YOzFontAA97 !important;
+			font-size: 1em;
+		}
+	</style>
+	{% endraw  %}
+{% endif %}
+{% if KU_RSS != '' %}
+	<link rel="alternate" type="application/rss+xml" title="RSS" href="{{KU_BOARDSPATH}}/{{board.name}}/rss.xml" />
+{% endif %}
+<script type="text/javascript"><!--
+		var ku_boardspath = '{{boardpath}}';
+		var ku_cgipath = '{{cwebpath}}';
+		var style_cookie = "kustyle";
+{% if replythread > 0 %}
+		var ispage = false;
+{% else %}
+		var ispage = true;
+{% endif %}
+//--></script>
+<script type="text/javascript" src="{{KU_WEBPATH}}/lib/javascript/kusaba.js"></script>
+<script type="text/javascript"><!--
+	var hiddenthreads = getCookie('hiddenthreads').split('!');
+//--></script>
+</head>
+<body>
+<div class="adminbar">
+{% if KU_STYLESWITCHER %}
+	{% if KU_DROPSWITCHER %}
+		<select onchange="javascript:if(selectedIndex != 0)set_stylesheet(options[selectedIndex].value);return false;">
+			<option>Styles</option>
+		{% for style in ku_styles %}
+			<option value="{{style|capitalize}}">{{style|capitalize}}</option>;
+		{% endfor %}
+		</select>
+	{% else %}
+		{% for style in ku_styles %}
+			[<a href="#" onclick="javascript:set_stylesheet('{{style|capitalize}}');return false;">{{style|capitalize}}</a>]&nbsp;
+		{% endfor %}
+	{% endif %}
+	{% if ku_styles > 0 %}
+		-&nbsp;
+	{% endif %}
+{% endif %}
+{% if KU_WATCHTHREADS %}
+	[<a href="#" onclick="javascript:showwatchedthreads();return false" title="Watched Threads">WT</a>]&nbsp;
+{% endif %}
+[<a href="{{KU_WEBPATH}}" target="_top">Home</a>]&nbsp;[<a href="{{KU_CGIPATH}}/manage.php" target="_top">Manage</a>]
+</div>
+<div class="navbar">
+
+{% if KU_GENERATEBOARDLIST %}
+	{% for sect in boardlist %}
+		[
+	{% for brd in sect %}
+		<a title="{{brd.desc}}" href="{{KU_BOARDSFOLDER}}{{brd.name}}/">{{brd.name}}</a>{% if loop.last %}{% else %} / {% endif %}
+	{% endfor %}
+		 ]
+	{% endfor %}
+{% else %}
+{#	{if is_file($boardlist)}
+		{include $boardlist}
+	{/if}
+#}
+{% endif %} 
+
+</div>
+{% if KU_WATCHTHREADS and not isoekaki and not hidewatchedthreads %}
+				<script type="text/javascript"><!--
+				if (getCookie('showwatchedthreads') == '1') {
+				document.write('<div id="watchedthreads" style="top: {{ad_top}}px; left: 25px;" class="watchedthreads"><div class="postblock" id="watchedthreadsdraghandle" style="width: 100%;">Watched Threads<\/div><span id="watchedthreadlist"><\/span><div id="watchedthreadsbuttons"><a href="#" onclick="javascript:hidewatchedthreads();return false;" title="Hide the watched threads box"><img src="{{cwebpath}}css/icons/blank.gif" border="0" class="hidewatchedthreads" alt="hide" /><\/a>&nbsp;<a href="#" onclick="javascript:getwatchedthreads(\'0\', \'{{board.name}}\');return false;" title="Refresh watched threads"><img src="{{cwebpath}}css/icons/blank.gif" border="0" class="refreshwatchedthreads" alt="refresh" /><\/a><\/div><\/div>');
+				watchedthreadselement = document.getElementById('watchedthreads');
+				watchedthreadselement.style.top = getCookie('watchedthreadstop');
+				watchedthreadselement.style.left = getCookie('watchedthreadsleft');
+				watchedthreadselement.style.width = Math.max(250,getCookie('watchedthreadswidth')) + 'px';
+				watchedthreadselement.style.height = Math.max(75,getCookie('watchedthreadsheight')) + 'px';
+				getwatchedthreads('<!sm_threadid>', '{{board.name}}');
+			}
+			//--></script>
+{% endif %}
+
+<div class="logo">
+{% if KU_HEADERURL != '' and board.image == '' %}
+	<img src="{{KU_HEADERURL}}" alt="Logo" /><br />
+{elseif $board.image neq '' && $board.image neq "none"}
+	<img src="{{board.image}}" alt="Logo" /><br />
+{% endif %}
+{% if KU_DIRTITLE %}
+	/{{board.name}}/ - 
+{% endif %}
+{{board.desc}}</div>
+{{board.includeheader}}
+<hr />

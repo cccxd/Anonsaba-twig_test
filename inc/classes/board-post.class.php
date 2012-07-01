@@ -29,7 +29,11 @@
  * @package kusaba
  *
  * TODO: replace repetitive code blocks with functions.
- */
+ */	
+require_once 'config.php';
+	//require_once KU_ROOTDIR .'lib/twig/lib/Twig/Autoloader.php';
+
+
 class Board {
 	/* Declare the public variables */
 	/**
@@ -43,17 +47,17 @@ class Board {
 	 */
 	var $archive_dir;
 	/**
-	 * Dwoo class
+	 * Twig class
 	 *
-	 * @var class Dwoo
+	 * @var class Twig
 	 */
-	var $dwoo;
+	//var $twig;
 	/**
-	 * Dwoo data class
+	 * Twig data class
 	 *
-	 * @var class Dwoo
+	 * @var class Twig
 	 */
-	var $dwoo_data;
+	//var $twig_data;
 	/**
 	 * Load balancer class
 	 *
@@ -128,16 +132,16 @@ class Board {
 	 * Regenerate all pages
 	 */
 	function RegeneratePages() {
-		global $tc_db, $CURRENTLOCALE;
+		global $tc_db, $twig, $twig_data, $CURRENTLOCALE;
 
-		$this->InitializeDwoo();
+		$this->InitializeTwig();
 
 		$this->board['filetypes'] = array();
 		foreach ($tc_db->GetAll('SELECT `filetype` FROM `' . KU_DBPREFIX . 'embeds`') as $line) {
 			$this->board['filetypes'][] = $line['filetype'];
 		}
 
-		$this->dwoo_data->assign('filetypes', $this->board['filetypes']);
+		$twig_data+=array('filetypes'=> $this->board['filetypes']);
 		//$maxpages = $this->board['maxpages']; //Does nothing
 		
 		if ($this->board['type'] == 1) {
@@ -153,10 +157,10 @@ class Board {
 		if ($totalpages == '-1') {
 			$totalpages = 0;
 		}
-		$this->dwoo_data->assign('numpages', $totalpages);
+		$twig_data+=array('numpages'=> $totalpages);
 		while ($i <= $totalpages) {
 			$newposts = Array();
-			$this->dwoo_data->assign('thispage', $i);
+			$twig_data+=array('thispage'=> $i);
 
 			$executiontime_start_page = microtime_float();
 			foreach ($tc_db->GetAll('SELECT * FROM `' . KU_DBPREFIX . 'posts` WHERE `boardid` = ' . $this->board['id'] . ' AND `parentid` = 0 AND `IS_DELETED` = 0 ORDER BY `stickied` DESC, `bumped` DESC LIMIT '. ($postsperpage).' OFFSET '. $postsperpage * $i) as $k=>$thread) {
@@ -165,7 +169,7 @@ class Board {
 					$tc_db->Execute('UPDATE `'.KU_DBPREFIX.'posts` SET `deleted_timestamp` = \'' . (time() + 7200) . '\' WHERE `boardid` = ' . $tc_db->quote($this->board['id']).' AND `id` = \'' . $thread['id'] . '\'');
 					clearPostCache($thread['id'], $this->board['name']);
 					$this->RegenerateThreads($thread['id']);
-					$this->dwoo_data->assign('replythread', 0);
+					$twig_data+=array('replythread'=> 0);
 				}
 				$thread = $this->BuildPost($thread, true);
 				
@@ -211,7 +215,7 @@ class Board {
 				}
 			}
 			if ($this->board['type'] == 0 && !isset($embeds)) {
-				$this->dwoo_data->assign('embeds', $tc_db->GetAll('SELECT * FROM `' . KU_DBPREFIX . 'embeds`'));
+				$twig_data+=array('embeds'=> $tc_db->GetAll('SELECT * FROM `' . KU_DBPREFIX . 'embeds`'));
 			}
 			if (!isset($header)){
 				$header = str_replace('<!sm_threadid>', 0, $this->PageHeader());
@@ -219,9 +223,11 @@ class Board {
 			if (!isset($postbox)) {
 				$postbox = str_replace('<!sm_threadid>', 0, $this->Postbox());
 			}
-			$this->dwoo_data->assign('posts', $newposts);
-			$this->dwoo_data->assign('file_path', getCLBoardPath($this->board['name'], $this->board['loadbalanceurl_formatted'], ''));
-			$content = $header.$postbox.$this->dwoo->get(KU_TEMPLATEDIR . '/' . $this->board['text_readable'] . '_board_page.tpl', $this->dwoo_data).$this->Footer(false, (microtime_float() - $executiontime_start_page), (($this->board['type'] == 1) ? (true) : (false)));
+			$twig_data+=array('posts'=> $newposts);
+			$twig_data+=array('file_path'=> getCLBoardPath($this->board['name'], $this->board['loadbalanceurl_formatted'], ''));
+			$twig_data+=array('KU_NEWWINDOW' => KU_NEWWINDOW);
+			
+			$content = $header.$postbox.$twig->render('/' . $this->board['text_readable'] . '_board_page.html', $twig_data).$this->Footer(false, (microtime_float() - $executiontime_start_page), (($this->board['type'] == 1) ? (true) : (false)));
 			$content = str_replace('\t', '',$content);
 			$content = str_replace('&nbsp;\r\n', '&nbsp;',$content);
 
@@ -236,11 +242,11 @@ class Board {
 		if ($this->board['type'] == 1) {
 			$numpostsleft = $tc_db->GetOne('SELECT COUNT(*) FROM `' . KU_DBPREFIX . 'posts` WHERE `boardid` = ' . $this->board['id'] . ' AND `IS_DELETED` = 0 AND `parentid` = 0');
 			$liststooutput = floor(($numpostsleft-1) / 40);
-			$this->dwoo_data->assign('numpages', $liststooutput+1);
+			$twig_data+=array('numpages'=> $liststooutput+1);
 			$listpage = 0;
 			$currentpostwave = 0;
 			while ($numpostsleft>0) {
-				$this->dwoo_data->assign('thispage', $listpage+1);
+				$twig_data+=array('thispage'=> $listpage+1);
 				$executiontime_start_list = microtime_float();
 				$page = $this->PageHeader(0, $currentpostwave, $liststooutput);
 				$this->Footer(false, (microtime_float()-$executiontime_start_list), true);
@@ -341,19 +347,26 @@ class Board {
 	 * Regenerate each thread's corresponding html file, starting with the most recently bumped
 	 */
 	function RegenerateThreads($id = 0) {
-		global $tc_db, $CURRENTLOCALE;
+		global $tc_db, $twig, $twig_data, $CURRENTLOCALE;
 		
-		require_once(KU_ROOTDIR."lib/dwoo.php");
-		if (!isset($this->dwoo)) { $this->dwoo = New Dwoo; $this->dwoo_data = new Dwoo_Data(); $this->InitializeDwoo(); }
+		//require_once KU_ROOTDIR .'lib/twig/lib/Twig/Autoloader.php';
+		 $this->InitializeTwig(); 
 		$embeds = Array();
 		$numimages = 0;
+			$twig_data+=array('KU_NEWWINDOW' => KU_NEWWINDOW);//
+			$twig_data+=array('KU_THUMBMSG' => KU_THUMBMSG);//
+			$twig_data+=array('KU_EXPAND' => KU_EXPAND);//
+			$twig_data+=array('KU_REPLIES' => KU_REPLIES);//
+			$twig_data+=array('KU_FIRSTLAST' => KU_FIRSTLAST); //->39*
+			//$twig_data+=array('KU_STATICPATH' => KU_STATICPATH);//
+
 		if ($this->board['type'] != 1 && !$embeds) {
 				$embeds = $tc_db->GetAll("SELECT * FROM `" . KU_DBPREFIX . "embeds`");
-				$this->dwoo_data->assign('embeds', $embeds);
+				$twig_data+=array('embeds'=> $embeds);
 				foreach ($embeds as $embed) {
 					$this->board['filetypes'][] = $embed['filetype'];
 				}
-				$this->dwoo_data->assign('filetypes', $this->board['filetypes']);
+				$twig_data+=array('filetypes'=> $this->board['filetypes']);
 		}
 		if ($id == 0) {
 			// Build every thread
@@ -377,18 +390,18 @@ class Board {
 								$posts[$key] = $this->BuildPost($post, false);
 							}
 							$header_replaced = str_replace("<!sm_threadid>", $thread['id'], $header);
-							$this->dwoo_data->assign('numimages', $numimages);
-							$this->dwoo_data->assign('replythread', $thread['id']);
-							$this->dwoo_data->assign('posts', $posts);
-							$this->dwoo_data->assign('file_path', getCLBoardPath($this->board['name'], $this->board['loadbalanceurl_formatted'], ''));
+							$twig_data+=array('numimages'=> $numimages);
+							$twig_data+=array('replythread'=> $thread['id']);
+							$twig_data+=array('posts'=> $posts);
+							$twig_data+=array('file_path'=> getCLBoardPath($this->board['name'], $this->board['loadbalanceurl_formatted'], ''));
 							if ($this->board['type'] != 2){
 								$postbox_replaced = str_replace("<!sm_threadid>", $thread['id'], $postbox);
 							}
 							else {
 								$postbox_replaced = $this->Postbox($thread['id']);
 							}
-							$reply	 = $this->dwoo->get(KU_TEMPLATEDIR . '/' . $this->board['text_readable'] . '_reply_header.tpl', $this->dwoo_data);
-							$content = $this->dwoo->get(KU_TEMPLATEDIR . '/' . $this->board['text_readable'] . '_thread.tpl', $this->dwoo_data);
+							$reply	 = $twig->render('/' . $this->board['text_readable'] . '_reply_header.html', $twig_data);
+							$content = $twig->render('/' . $this->board['text_readable'] . '_thread.html', $twig_data);
 							if (!isset($footer)) $footer = $this->Footer(false, (microtime_float() - $executiontime_start_thread), (($this->board['type'] == 1) ? (true) : (false)));
 							$content = $header_replaced.$reply.$postbox_replaced.$content.$footer;
 
@@ -400,8 +413,8 @@ class Board {
 
 								$replycount = (count($posts)-1);
 								if ($replycount > 50) {
-									$this->dwoo_data->assign('replycount', $replycount);
-									$this->dwoo_data->assign('modifier', "last50");
+									$twig_data+=array('replycount'=> $replycount);
+									$twig_data+=array('modifier'=> "last50");
 
 									// Grab the last 50 replies
 									$posts50 = array_slice($posts, -50, 50);
@@ -409,9 +422,9 @@ class Board {
 									// Add on the OP
 									array_unshift($posts50, $posts[0]);
 									
-									$this->dwoo_data->assign('posts', $posts50);
+									$twig_data+=array('posts'=> $posts50);
 
-									$content = $this->dwoo->get(KU_TEMPLATEDIR . '/img_thread.tpl', $this->dwoo_data);
+									$content = $twig->render('/img_thread.html', $twig_data);
 									$content = $header_replaced.$reply.$postbox_replaced.$content.$footer;
 									$content = str_replace("\t", '',$content);
 									$content = str_replace("&nbsp;\r\n", '&nbsp;',$content);
@@ -420,14 +433,14 @@ class Board {
 
 									$this->PrintPage(KU_BOARDSDIR . $this->board['name'] . $this->archive_dir . '/res/' . $thread['id'] . '+50.html', $content, $this->board['name']);
 									if ($replycount > 100) {
-										$this->dwoo_data->assign('modifier', "first100");
+										$twig_data+=array('modifier'=> "first100");
 
 										// Grab the first 100 posts
 										$posts100 = array_slice($posts, 0, 100);
 
-										$this->dwoo_data->assign('posts', $posts100);
+										$twig_data+=array('posts'=> $posts100);
 
-										$content = $this->dwoo->get(KU_TEMPLATEDIR . '/img_thread.tpl', $this->dwoo_data);
+										$content = $twig->render('/img_thread.html', $twig_data);
 										$content = $header_replaced.$reply.$postbox_replaced.$content.$footer;
 										$content = str_replace("\t", '',$content);
 										$content = str_replace("&nbsp;\r\n", '&nbsp;',$content);
@@ -436,7 +449,7 @@ class Board {
 										
 										$this->PrintPage(KU_BOARDSDIR . $this->board['name'] . $this->archive_dir . '/res/' . $thread['id'] . '-100.html', $content, $this->board['name']);
 									}
-									$this->dwoo_data->assign('modifier', "");
+									$twig_data+=array('modifier'=> "");
 								}
 							}
 						}
@@ -455,20 +468,20 @@ class Board {
 				}
 				$header = $this->PageHeader($id);
 				$postbox = $this->Postbox($id);
-				$this->dwoo_data->assign('numimages', $numimages);
+				$twig_data+=array('numimages'=> $numimages);
 				$header = str_replace("<!sm_threadid>", $id, $header);
 
-				$this->dwoo_data->assign('replythread', $id);
+				$twig_data+=array('replythread'=> $id);
 				if ($this->board['type'] != 2){
 					$postbox = str_replace("<!sm_threadid>", $id, $postbox);
 				}
 
-				$this->dwoo_data->assign('threadid', $thread[0]['id']);
-				$this->dwoo_data->assign('posts', $thread);
-				$this->dwoo_data->assign('file_path', getCLBoardPath($this->board['name'], $this->board['loadbalanceurl_formatted'], ''));
+				$twig_data+=array('threadid'=> $thread[0]['id']);
+				$twig_data+=array('posts'=> $thread);
+				$twig_data+=array('file_path'=> getCLBoardPath($this->board['name'], $this->board['loadbalanceurl_formatted'], ''));
 				
-				$postbox = $this->dwoo->get(KU_TEMPLATEDIR . '/' . $this->board['text_readable'] . '_reply_header.tpl', $this->dwoo_data).$postbox;
-				$content = $this->dwoo->get(KU_TEMPLATEDIR . '/' . $this->board['text_readable'] . '_thread.tpl', $this->dwoo_data);
+				$postbox = $twig->render('/' . $this->board['text_readable'] . '_reply_header.html', $twig_data).$postbox;
+				$content = $twig->render('/' . $this->board['text_readable'] . '_thread.html', $twig_data);
 				
 				if (!isset($footer)) $footer = $this->Footer(false, (microtime_float() - $executiontime_start_thread), (($this->board['type'] == 1) ? (true) : (false)));
 				$content = $header.$postbox.$content.$footer;
@@ -480,8 +493,8 @@ class Board {
 				if (KU_FIRSTLAST) {
 					$replycount = $tc_db->GetOne("SELECT COUNT(`id`) FROM `" . KU_DBPREFIX . "posts` WHERE `boardid` = " . $this->board['id'] . " AND `parentid` = " . $id . " AND `IS_DELETED` = 0");
 					if ($replycount > 50) {
-						$this->dwoo_data->assign('replycount', $replycount);
-						$this->dwoo_data->assign('modifier', "last50");
+						$twig_data+=array('replycount'=> $replycount);
+						$twig_data+=array('modifier'=> "last50");
 
 						// Grab the last 50 replies
 						$posts50 = array_slice($thread, -50, 50);
@@ -489,9 +502,9 @@ class Board {
 						// Add the thread to the top of this, since it wont be included in the result
 						array_unshift($posts50, $thread[0]); 
 
-						$this->dwoo_data->assign('posts', $posts50);
+						$twig_data+=array('posts'=> $posts50);
 
-						$content = $this->dwoo->get(KU_TEMPLATEDIR . '/img_thread.tpl', $this->dwoo_data);
+						$content = $twig->render('/img_thread.html', $twig_data);
 						$content = $header.$reply.$postbox.$content.$footer;
 						$content = str_replace("\t", '',$content);
 						$content = str_replace("&nbsp;\r\n", '&nbsp;',$content);
@@ -500,15 +513,15 @@ class Board {
 
 						$this->PrintPage(KU_BOARDSDIR . $this->board['name'] . $this->archive_dir . '/res/' . $id . '+50.html', $content, $this->board['name']);
 						if ($replycount > 100) {
-							$this->dwoo_data->assign('modifier', "first100");
+							$twig_data+=array('modifier'=> "first100");
 
 							// Grab the first 100 posts
 							$posts100 = array_slice($thread, 0, 100);
 
-							$this->dwoo_data->assign('posts', $posts100);
+							$twig_data+=array('posts'=> $posts100);
 
-							$this->dwoo_data->assign('posts', $posts);
-							$content = $this->dwoo->get(KU_TEMPLATEDIR . '/img_thread.tpl', $this->dwoo_data);
+							$twig_data+=array('posts'=> $posts);
+							$content = $twig->render('/img_thread.html', $twig_data);
 							$content = $header.$reply.$postbox.$content.$footer;
 							$content = str_replace("\t", '',$content);
 							$content = str_replace("&nbsp;\r\n", '&nbsp;',$content);
@@ -517,7 +530,7 @@ class Board {
 
 							$this->PrintPage(KU_BOARDSDIR . $this->board['name'] . $this->archive_dir . '/res/' . $id . '-100.html', $content, $this->board['name']);
 						}
-						$this->dwoo_data->assign('modifier', "");
+						$twig_data+=array('modifier' => "");
 					}
 				}
 			}
@@ -620,18 +633,18 @@ class Board {
 	 * @return string The built header
 	 */
 	function PageHeader($replythread = '0', $liststart = '0', $liststooutput = '-1') {
-		global $tc_db, $CURRENTLOCALE;
+		global $tc_db, $twig_data, $twig, $CURRENTLOCALE;
 
-		$tpl = Array();
+		$html = Array();
 
-		$tpl['htmloptions'] = ((KU_LOCALE == 'he' && empty($this->board['locale'])) || $this->board['locale'] == 'he') ? ' dir="rtl"' : '' ;
-
-		$tpl['title'] = '';
+		$html['htmloptions'] = ((KU_LOCALE == 'he' && empty($this->board['locale'])) || $this->board['locale'] == 'he') ? ' dir="rtl"' : '' ;
+$twig_data+=array('htmloptions'=> $html['htmloptions']);
+		$html['title'] = '';
 
 		if (KU_DIRTITLE) {
-			$tpl['title'] .= '/' . $this->board['name'] . '/ - ';
+			$html['title'] .= '/' . $this->board['name'] . '/ - ';
 		}
-		$tpl['title'] .= $this->board['desc'];
+		$html['title'] .= $this->board['desc'];
 
 		$ad_top = 185;
 		$ad_right = 25;
@@ -645,13 +658,21 @@ class Board {
 		if ($this->board['type']==2) {
 			$ad_top += 40;
 		}
-		$this->dwoo_data->assign('title', $tpl['title']);
-		$this->dwoo_data->assign('htmloptions', $tpl['htmloptions']);
-		$this->dwoo_data->assign('locale', $CURRENTLOCALE);
-		$this->dwoo_data->assign('ad_top', $ad_top);
-		$this->dwoo_data->assign('ad_right', $ad_right);
-		$this->dwoo_data->assign('board', $this->board);
-		$this->dwoo_data->assign('replythread', $replythread);
+		$twig_data+=array('title'=> $html['title']);
+		
+		$twig_data+=array('locale'=> $CURRENTLOCALE);
+		$twig_data+=array('KU_CHARSET' => KU_CHARSET);
+		$twig_data+=array('KU_DROPSWITCHER' => KU_DROPSWITCHER);//
+		$twig_data+=array('KU_STYLESWITCHER' => KU_STYLESWITCHER);//
+		$twig_data+=array('KU_GENERATEBOARDLIST' => KU_GENERATEBOARDLIST);//
+		$twig_data+=array('KU_WATCHTHREADS' => KU_WATCHTHREADS);//
+		$twig_data+=array('KU_HEADERURL' => KU_HEADERURL);//
+		$twig_data+=array('KU_DIRTITLE' => KU_DIRTITLE);//
+		$twig_data+=array('KU_QUICKREPLY' => KU_QUICKREPLY);//
+		$twig_data+=array('ad_top'=> $ad_top);
+		$twig_data+=array('ad_right'=> $ad_right);
+		$twig_data+=array('board'=> $this->board);
+		$twig_data+=array('replythread'=> $replythread);
 		if ($this->board['type'] != 1) {
 			$token = $this->CreateToken();
 			$topads = $tc_db->GetOne("SELECT code FROM `" . KU_DBPREFIX . "ads` WHERE `position` = 'sfwtop' AND `disp` = '1'");
@@ -659,30 +680,30 @@ class Board {
 			$sfwpost = $tc_db->GetOne("SELECT code FROM `" . KU_DBPREFIX . "ads` WHERE `position` = 'sfwpost' AND `disp` = '1'");
 			$nsfwpost = $tc_db->GetOne("SELECT code FROM `" . KU_DBPREFIX . "ads` WHERE `position` = 'nsfwpost' AND `disp` = '1'");
 			
-			$this->dwoo_data->assign('topads', $topads);
-			$this->dwoo_data->assign('nsfwtop', $nsfwtop);
-			$this->dwoo_data->assign('sfwpost', $sfwpost);
-			$this->dwoo_data->assign('nsfwpost', $nsfwpost);
-			$this->dwoo_data->assign('ku_styles', explode(':', KU_STYLES));
-			$this->dwoo_data->assign('ku_defaultstyle', (!empty($this->board['defaultstyle']) ? ($this->board['defaultstyle']) : (KU_DEFAULTSTYLE)));
+			$twig_data+=array('topads'=> $topads);
+			$twig_data+=array('nsfwtop'=> $nsfwtop);
+			$twig_data+=array('sfwpost'=> $sfwpost);
+			$twig_data+=array('nsfwpost'=> $nsfwpost);
+			$twig_data+=array('ku_styles'=> explode(':', KU_STYLES));
+			$twig_data+=array('ku_defaultstyle' => (!empty($this->board['defaultstyle']) ? ($this->board['defaultstyle']) : (KU_DEFAULTSTYLE)));
 		} else {
-			$this->dwoo_data->assign('ku_styles', explode(':', KU_TXTSTYLES));
-			$this->dwoo_data->assign('ku_defaultstyle', (!empty($this->board['defaultstyle']) ? ($this->board['defaultstyle']) : (KU_DEFAULTTXTSTYLE)));
+			$twig_data+=array('ku_styles' => explode(':', KU_TXTSTYLES));
+			$twig_data+=array('ku_defaultstyle' => (!empty($this->board['defaultstyle']) ? ($this->board['defaultstyle']) : (KU_DEFAULTTXTSTYLE)));
 		}
-		$this->dwoo_data->assign('boardlist', $this->board['boardlist']);
+		$twig_data+=array('boardlist' => $this->board['boardlist']);
 
-		$global_header = $this->dwoo->get(KU_TEMPLATEDIR . '/global_board_header.tpl', $this->dwoo_data);
+		$global_header = $twig->render('/global_board_header.html', $twig_data);
 
 		if ($this->board['type'] != 1) {
-			$header = $this->dwoo->get(KU_TEMPLATEDIR . '/' . $this->board['text_readable'] . '_header.tpl', $this->dwoo_data);
+			$header = $twig->render('/'. $this->board['text_readable'] . '_header.html', $twig_data);
 		} else {
 			if ($liststooutput == -1) {
-				$this->dwoo_data->assign('isindex', true);
+				$twig_data+=array('isindex' => true);
 			} else {
-				$this->dwoo_data->assign('isindex', false);
+				$twig_data+=array('isindex' => false);
 			}
-			if ($replythread != 0) $this->dwoo_data->assign('isthread', true);
-			$header = $this->dwoo->get(KU_TEMPLATEDIR . '/txt_header.tpl', $this->dwoo_data);
+			if ($replythread != 0) $twig_data+=array('isthread' => true);
+			$header = $twig->render('/txt_header.html', $twig_data);
 
 			if ($replythread == 0) {
 				$startrecord = ($liststooutput >= 0 || $this->board['compactlist']) ? 40 : KU_THREADSTXT ;
@@ -691,8 +712,8 @@ class Board {
 					$replycount = $tc_db->GetOne("SELECT COUNT(`id`) FROM `" . KU_DBPREFIX . "posts` WHERE `boardid` = " . $tc_db->qstr($this->board['id']) . " AND `parentid` = " . $thread['id']);
 					$threads[$key]['replies'] = $replycount;
 				}
-				$this->dwoo_data->assign('threads', $threads);
-				$header .= $this->dwoo->get(KU_TEMPLATEDIR . '/txt_threadlist.tpl', $this->dwoo_data);
+				$twig_data+=array('threads' => $threads);
+				$header .= $twig->render('/txt_threadlist.html', $twig_data);
 			}
 		}
 
@@ -706,10 +727,10 @@ class Board {
 	 */
 	function OekakiHeader($replyto, $postoek) {
 		$executiontime_start = microtime_float();
-		$this->InitializeDwoo();
+		$this->InitializeTwig();
 
 		$page = $this->PageHeader();
-		$this->dwoo_data->assign('replythread', $replyto);
+		$twig_data+=array('replythread' => $replyto);
 		$page .= $this->Postbox();
 
 		$executiontime_stop = microtime_float();
@@ -727,23 +748,25 @@ class Board {
 	 * @return string The generated postbox
 	 */
 	function Postbox($replythread = 0) {
-		global $tc_db;
+
+		global $tc_db, $twig_data, $twig;
+			$twig_data+=array('KU_BLOTTER' => KU_BLOTTER);
 		if (KU_BLOTTER && $this->board['type'] != 1) {
-			$this->dwoo_data->assign('blotter', getBlotter());
-			$this->dwoo_data->assign('blotter_updated', getBlotterLastUpdated());
+			$twig_data+=array('blotter' => getBlotter());
+			$twig_data+=array('blotter_updated'=> getBlotterLastUpdated());
 		}
 		$postbox = '';
 		if ($this->board['type'] == 2 && $replythread > 0) {
 			$oekposts = $tc_db->GetAll("SELECT `id` FROM `" . KU_DBPREFIX."posts` WHERE `boardid` = " . $this->board['id']." AND (`id` = ".$replythread." OR `parentid` = ".$replythread.") AND `IS_DELETED` = 0 ORDER BY `parentid` ASC, `timestamp` ASC");
-			$this->dwoo_data->assign('oekposts', $oekposts);
+			$twig_data+=array('oekposts'=> $oekposts);
 		}
 		if ($this->board['enablecaptcha'] ==  1) {
 			require_once(KU_ROOTDIR.'recaptchalib.php');
 			$publickey = "6LfOL9MSAAAAAKqvyC66AknJ0gcWuMlVJC33vRwt";
-			$this->dwoo_data->assign('recaptcha', recaptcha_get_html($publickey));
+			$twig_data+=array('recaptcha'=> recaptcha_get_html($publickey));
 		}
 		if(($this->board['type'] == 1 && $replythread == 0) || $this->board['type'] != 1) {
-			$postbox .= $this->dwoo->get(KU_TEMPLATEDIR . '/' . $this->board['text_readable'] . '_post_box.tpl', $this->dwoo_data);
+			$postbox .= $twig->render('/' . $this->board['text_readable'] . '_post_box.html', $twig_data);
 		}
 		return $postbox;
 	}
@@ -785,25 +808,25 @@ class Board {
 	 * @return string The generated footer
 	 */
 	function Footer($noboardlist = false, $executiontime = '', $hide_extra = false) {
-		global $tc_db, $dwoo, $dwoo_data;
+		global $tc_db, $twig, $twig_data;
 
 		$footer = '';
 		$version = $tc_db->GetOne("SELECT `version` FROM `".KU_DBPREFIX."options`");
-		$this->dwoo_data->assign('version', $version);
+		$twig_data+=array('version' => $version);
 
-		if ($hide_extra || $noboardlist) $this->dwoo_data->assign('boardlist', '');
+		if ($hide_extra || $noboardlist) $twig_data+=array('boardlist' => '');
 
-		if ($executiontime != '') $this->dwoo_data->assign('executiontime', round($executiontime, 2));
+		if ($executiontime != '') $twig_data+=array('executiontime' => round($executiontime, 2));
 
 		$botcheck = $this->board['name'];		
 		$botads = $tc_db->GetOne("SELECT code FROM `" . KU_DBPREFIX . "ads` WHERE `position` = 'sfwbot' AND `disp` = '1'");
 		$nsfwbot = $tc_db->GetOne("SELECT code FROM `" . KU_DBPREFIX . "ads` WHERE `position` = 'nsfwbot' AND `disp` = '1'");
-		$this->dwoo_data->assign('botcheck', $botcheck);
-		$this->dwoo_data->assign('botads', $botads);
-		$this->dwoo_data->assign('nsfwbot', $nsfwbot);
-		$footer = $this->dwoo->get(KU_TEMPLATEDIR . '/' . $this->board['text_readable'] . '_footer.tpl', $this->dwoo_data);
+		$twig_data+=array('botcheck' => $botcheck);
+		$twig_data+=array('botads' => $botads);
+		$twig_data+=array('nsfwbot' => $nsfwbot);
+		$footer = $twig->render('/' . $this->board['text_readable'] . '_footer.html', $twig_data);
 		
-		$footer .= $this->dwoo->get(KU_TEMPLATEDIR . '/global_board_footer.tpl', $this->dwoo_data);
+		$footer .= $twig->render('/global_board_footer.html' , $twig_data);
 
 		return $footer;
 	}
@@ -828,14 +851,9 @@ class Board {
 	/**
 	 * Initialize the instance of smary which will be used for generating pages
 	 */
-	function InitializeDwoo() {
-
-		require_once KU_ROOTDIR . 'lib/dwoo.php';
-		$this->dwoo = new Dwoo();
-		$this->dwoo_data = new Dwoo_Data();
-
-		$this->dwoo_data->assign('cwebpath', getCWebpath());
-		$this->dwoo_data->assign('boardpath', getCLBoardPath());
+	function InitializeTwig() {
+	require_once KU_ROOTDIR .'lib/twig/lib/Twig/Autoloader.php';
+		$twig_data=array('cwebpath' => getCWebpath(), 'boardpath' => getCLBoardPath(), 'KU_WEBPATH' => KU_WEBPATH );
 	}
 
 	/**

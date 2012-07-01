@@ -1,0 +1,479 @@
+<form id="delform" action="{{KU_CGIPATH}}/board.php" method="post">
+<input type="hidden" name="board" value="{{board.name}}" />
+{% for postsa in posts %}
+	{% for post in postsa %}
+		{% if post.parentid == 0 %}
+			<span id="unhidethread{{post.id}}{{board.name}}" style="display: none;">
+			Thread <a href="{{KU_BOARDSFOLDER}}{{board.name}}/res/{{post.id}}.html">{{post.id}}</a> hidden.
+			<a href="#" onclick="javascript:togglethread('{{post.id}}{{board.name}}');return false;" title="Un-Hide Thread">
+				<img src="{{cwebpath}}css/icons/blank.gif" border="0" class="unhidethread" alt="Un-Hide Thread" />
+			</a>
+	</span>
+	<div id="thread{{post.id}}{{board.name}}">
+	<script type="text/javascript"><!--
+		if (hiddenthreads.toString().indexOf('{{post.id}}{{board.name}}')!==-1) {
+			document.getElementById('unhidethread{{post.id}}{{board.name}}').style.display = 'block';
+			document.getElementById('thread{{post.id}}{{board.name}}').style.display = 'none';
+		}
+		//--></script>
+			<a name="s{{loop.index}}"></a>
+			
+			{% if (post.file.0 != '' or post.file_type.0 != '' ) and ((post.videobox == '' and post.file.0 != '') and post.file.0 != 'removed') %}
+				<span class="filesize">
+				{% if post.file_type.0 == 'mp3' %}
+					Audio
+				{% else %}
+					File
+				{% endif %}
+				{% if post.file_type.0 != 'jpg' and post.file_type.0 != 'gif' and post.file_type.0 != 'png' and post.videobox == '' %}
+					<a 
+					{% if KU_NEWWINDOW %}
+						target="_blank" 
+					{% endif %}
+					href="{{file_path}}/src/{{post.file.0}}.{{post.file_type.0}}">
+				{% else %}
+					<a href="{{file_path}}/src/{{post.file.0}}.{{post.file_type.0}}" onclick="javascript:expandimg('{{post.id}}', '{{file_path}}/src/{{post.file.0}}.{{post.file_type.0}}', '{{file_path}}/thumb/{{post.file.0}}s.{{post.file_type.0}}', '{{post.image_w.0}}', '{{post.image_h.0}}', '{{post.thumb_w.0}}', '{{post.thumb_h.0}}');return false;">
+				{% endif %}
+				{% if post.id3.0.comments_html %}
+					{% if post.id3.0.comments_html.artist.0 != '' %}
+					{{post.id3.0.comments_html.artist.0|raw}}
+						{% if post.id3.0.comments_html.title.0 != '' %}
+							- 
+						{% endif %}
+					{% endif %}
+					{% if post.id3.0.comments_html.title.0 != '' %}
+						{{post.id3.0.comments_html.title.0|raw}}
+					{% endif %}
+					</a>
+				{% else %}
+					{{post.file.0}}.{{post.file_type.0}}</a>
+				{% endif %}
+				- ({{post.file_size_formatted.0}}
+				{% if post.id3.0.comments_html.bitrate != 0 or post.id3.0.audio.sample_rate != 0 %}
+					{% if post.id3.0.audio.bitrate != 0 %}
+						- {{post.id3.0.audio.bitrate / 1000}} kbps
+						{% if post.id3.0.audio.sample_rate != 0 %}
+							- 
+						{% endif %}
+					{% endif %}
+					{% if post.id3.0.audio.sample_rate != 0 %}
+						{{post.id3.0.audio.sample_rate / 1000}} kHz
+					{% endif %}
+				{% endif %}
+				{% if post.image_w.0 > 0 and post.image_h.0 > 0 %}
+					, {{post.image_w.0}}x{{post.image_h.0}}
+				{% endif %}
+				{% if post.file_original.0 != '' and post.file_original.0 != post.file.0 %}
+					, {{post.file_original.0}}.{{post.file_type.0}}
+				{% endif %}
+				)
+				{% if post.id3.0.playtime_string != '' %}
+					Length: {{post.id3.0.playtime_string}}
+				{% endif %}
+				{% if board.imgedit == 1 %}
+                                {% if post.file_type.0 == 'jpg' or post.file_type.0 == 'gif' or post.file_type.0 == 'png' %}
+                                <a href="{{KU_WEBPATH}}/imgedit.php?B={{board.name}}&I={{post.file.0}}&T={{posts.0.id}}">
+                                <img src="{{KU_WEBPATH}}/css/edit.gif" alt="edit" />
+                                </a>
+                                {% endif %}
+				{% endif %}
+				</span>
+				{% if KU_THUMBMSG %}
+					<span class="thumbnailmsg"> 
+					{% if post.file_type.0 != 'jpg' and post.file_type.0 != 'gif' and post.file_type.0 != 'png' and post.videobox == '' %}
+						Extension icon displayed, click image to open file.
+					{% else %}
+						Thumbnail displayed, click image for full size.
+					{% endif %}
+					</span>
+				{% endif %}
+				<br />
+			{% endif %}
+			{% if post.videobox == '' and post.file.0 != '' and ( post.file_type.0 == 'jpg' or post.file_type.0 == 'gif' or post.file_type.0 == 'png') %}
+				{% if post.file.0 == 'removed' %}
+					<div class="nothumb">
+						File<br />Removed
+					</div>
+				{% else %}
+					<a 
+					{% if KU_NEWWINDOW %}
+						target="_blank" 
+					{% endif %}
+					href="{{file_path}}/src/{{post.file.0}}.{{post.file_type.0}}">
+					<span id="thumb{{post.id}}"><img src="{{file_path}}/thumb/{{post.file.0}}s.{{post.file_type.0}}" alt="{{post.id}}" class="thumb" height="{{post.thumb_h.0}}" width="{{post.thumb_w.0}}" /></span>
+					</a>
+				{% endif %}
+			{% elseif post.nonstandard_file.0 != '' %}
+				{% if post.file.0 == 'removed' %}
+					<div class="nothumb">
+						File<br />Removed
+					</div>
+				{% else %}
+					<a 
+					{% if KU_NEWWINDOW %}
+						target="_blank" 
+					{% endif %}
+					href="{{file_path}}/src/{{post.file.0}}.{{post.file_type.0}}">
+					<span id="thumb{{post.id}}"><img src="{{post.nonstandard_file.0}}" alt="{{post.id}}" class="thumb" height="{{post.thumb_h.0}}" width="{{post.thumb_w.0}}" /></span>
+					</a>
+				{% endif %}
+			{% endif %}
+			<a name="{{post.id}}"></a>
+			<label>
+			<input type="checkbox" name="post[]" value="{{post.id}}" />
+			{% if post.subject != '' %}
+				<span class="filetitle">
+					{{post.subject}}
+				</span>
+			{% endif %}
+			{% spaceless %}
+				<span class="postername">
+				
+				{% if post.email and board.anonymous and board.enableemail == 1 %}
+					<a href="mailto:{{post.email}}">
+				{% endif %}
+				{% if post.name == '' and post.tripcode == '' %}
+					{{board.anonymous}}
+				{% elseif post.name == '' and post.tripcode != '' %}
+				{% else %}
+					{{post.name}}
+				{% endif %}
+				{% if post.email != '' and board.anonymous != ''  %}
+					</a>
+				{% endif %}
+
+				</span>
+
+				{% if post.tripcode != '' %}
+					<span class="postertrip">!{{post.tripcode}}</span>
+				{% endif %}
+			{% endspaceless %}
+			{% if post.posterauthority == 1 %}
+				<span class="admin">
+					&#35;&#35;&nbsp;Admin&nbsp;&#35;&#35;
+				</span>
+			{% elseif post.posterauthority == 4 %}
+				<span class="mod">
+					&#35;&#35;&nbsp;Super Mod&nbsp;&#35;&#35;
+				</span>
+			{% elseif post.posterauthority == 2 %}
+				<span class="mod">
+					&#35;&#35;&nbsp;Mod&nbsp;&#35;&#35;
+				</span>
+			{% endif %}
+			{{post.timestamp_formatted}}
+			</label>
+			<span class="reflink">
+				{{post.reflink|raw}}
+			</span>
+			{% if board.showid %}
+				ID: {{post.ipmd5|slice(0, 6)}}
+			{% endif %}
+			<span class="extrabtns">
+			{% if post.locked == 1 %}
+				<img style="border: 0;" src="{{boardpath}}css/locked.gif" alt="Locked" />
+			{% endif %}
+			{% if post.stickied == 1 %}
+				<img style="border: 0;" src="{{boardpath}}css/sticky.gif" alt="Stickied" />
+			{% endif %}
+			<span id="hide{{post.id}}"><a href="#" onclick="javascript:togglethread('{% if post.parentid == 0 %}{{post.id}}{% else %}{{post.parentid}}{% endif %}{{board.name}}');return false;" title="Hide Thread"><img src="{{boardpath}}css/icons/blank.gif" border="0" class="hidethread" alt="hide" /></a></span>
+			{% if KU_WATCHTHREADS %}
+				<a href="#" onclick="javascript:addtowatchedthreads('{% if post.parentid == 0 %}{{post.id}}{% else %}{{post.parentid}}{% endif %}','{{board.name}}');return false;" title="Watch Thread"><img src="{{boardpath}}css/icons/blank.gif" border="0" class="watchthread" alt="watch" /></a>
+			{% endif %}
+			{% if KU_EXPAND and post.replies and (post.replies + KU_REPLIES) < 300 %}
+				<a href="#" onclick="javascript:expandthread('{% if post.parentid == 0 %}{{post.id}}{% else %}{{post.parentid}}{% endif %}','{{board.name}}');return false;" title="Expand Thread"><img src="{{boardpath}}css/icons/blank.gif" border="0" class="expandthread" alt="expand" /></a>
+			{% endif %}
+			{% if KU_QUICKREPLY %}
+				<a href="#postbox" onclick="javascript:quickreply('{% if post.parentid == 0 %}{{post.id}}{% else %}{{post.parentid}}{% endif %}');" title="Quick Reply"><img src="{{boardpath}}css/icons/blank.gif" border="0" class="quickreply" alt="quickreply" /></a>
+			{% endif %}
+			</span>
+			<span id="dnb-{{board.name}}-{{post.id}}-y"></span>
+			[<a href="{{KU_BOARDSPATH}}/{{board.name}}/res/{% if post.parentid == 0 %}{{post.id}}{% else %}{{post.parentid}}{% endif %}.html">Reply</a>]
+			{% if KU_FIRSTLAST and ((post.stickied == 1 and post.replies + KU_REPLIESSTICKY > 50) or (post.stickied == 0 and post.replies + KU_REPLIES > 50)) %}
+				{% if ((post.stickied == 1 and post.replies + KU_REPLIESSTICKY > 100) or (post.stickied == 0 and post.replies + KU_REPLIES > 100)) %}
+					[<a href="{{KU_BOARDSPATH}}/{{board.name}}/res/{% if post.parentid == 0 %}{{post.id}}{% else %}{{post.parentid}}{% endif %}-100.html">First 100 posts</a>]
+				{% endif %}
+				[<a href="{{KU_BOARDSPATH}}/{{board.name}}/res/{{post.id}}+50.html">Last 50 posts</a>]
+			{% endif %}
+			<br />
+		{% else %}
+			<table>
+				<tbody>
+				<tr>
+					<td class="doubledash">
+						&gt;&gt;
+					</td>
+					<td class="reply" id="reply{{post.id}}">
+						<a name="{{post.id}}"></a>
+						<label>
+						<input type="checkbox" name="post[]" value="{{post.id}}" />
+						
+						
+						{% if post.subject != '' %}
+							<span class="filetitle">
+								{{post.subject}}
+							</span>
+						{% endif %}
+						{% spaceless %}
+								<span class="postername">
+								
+								{% if post.email and board.anonymous and board.enableemail == 1 %}
+                                                                <a href="mailto:{{post.email}}">
+                                                                {% endif %}
+								{% if post.name == '' and post.tripcode == '' %}
+									{{board.anonymous}}
+								{% elseif post.name == '' and post.tripcode != '' %}
+								{% else %}
+									{{post.name}}
+								{% endif %}
+								{% if post.email != '' and board.anonymous != '' %}
+									</a>
+								{% endif %}
+
+								</span>
+
+							{% if post.tripcode != '' %}
+								<span class="postertrip">!{{post.tripcode}}</span>
+							{% endif %}
+						{% endspaceless %}
+						{% if post.posterauthority == 1 %}
+							<span class="admin">
+								&#35;&#35;&nbsp;Admin&nbsp;&#35;&#35;
+							</span>
+						{% elseif post.posterauthority == 4 %}
+							<span class="mod">
+								&#35;&#35;&nbsp;Super Mod&nbsp;&#35;&#35;
+							</span>
+						{% elseif post.posterauthority == 2 %}
+							<span class="mod">
+								&#35;&#35;&nbsp;Mod&nbsp;&#35;&#35;
+							</span>
+						{% endif %}
+
+						{{post.timestamp_formatted}}
+						</label>
+
+						<span class="reflink">
+							{{post.reflink|raw}}
+						</span>
+						{% if board.showid %}
+							ID: {{post.ipmd5|slice(0, 6)}}
+						{% endif %}
+						<span class="extrabtns">
+						{% if post.locked == 1 %}
+							<img style="border: 0;" src="{{KU_STATICPATH}}/images/locked.gif" alt="Locked" />
+						{% endif %}
+						{% if post.stickied == 1 %}
+							<img style="border: 0;" src="{{KU_STATICPATH}}/images/sticky.gif" alt="Stickied" />
+						{% endif %}
+						</span>
+						<span id="dnb-{{board.name}}-{{post.id}}-n"></span>
+						{% if post.file == 1 and (post.file.0 != '' or post.file_type.0 != '' ) and ((post.videobox == '' and post.file.0 != '') and post.file.0 != 'removed') %}
+							<br /><span class="filesize">
+							{% if post.file_type.0 == 'mp3' %}
+								Audio
+							{% else %}
+								File
+							{% endif %}
+							{% if post.file_type.0 != 'jpg' and post.file_type.0 != 'gif' and post.file_type.0 != 'png' and post.videobox == '' %}
+								<a {% if KU_NEWWINDOW %}target="_blank" {% endif %}href="{{file_path}}/src/{{post.file.0}}.{{post.file_type.0}}">
+							{% else %}
+								<a href="{{file_path}}/src/{{post.file.0}}.{{post.file_type.0}}" onclick="javascript:expandimg('{{post.id}}', '{{file_path}}/src/{{post.file.0}}.{{post.file_type.0}}', '{{file_path}}/thumb/{{post.file.0}}s.{{post.file_type.0}}', '{{post.image_w.0}}', '{{post.image_h.0}}', '{{post.thumb_w.0}}', '{{post.thumb_h.0}}');return false;">
+							{% endif %}
+							{% if post.id3.0.comments_html %}
+								{% if post.id3.0.comments_html.artist.0 != '' %}
+									{{post.id3.0.comments_html.artist.0}}
+										{% if post.id3.0.comments_html.title.0 != '' %}
+										- 
+										{% endif %}
+								{% endif %}
+								{% if post.id3.0.comments_html.title.0 != '' %}
+									{{post.id3.0.comments_html.title.0}}
+								{% endif %}
+								</a>
+							{% else %}
+								{{post.file.0}}.{{post.file_type.0}}</a>
+							{% endif %}
+							- ({{post.file_size_formatted.0}}
+							{% if post.id3.0.comments_html.bitrate != 0 or post.id3.0.audio.sample_rate != 0 %}
+								{% if post.id3.0.audio.bitrate != 0 %}
+									- {{post.id3.0.audio.bitrate / 1000}} kbps
+									{% if post.id3.0.audio.sample_rate != 0 %}
+										- 
+									{% endif %}
+								{% endif %}
+								{% if post.id3.0.audio.sample_rate != 0 %}
+									{{post.id3.0.audio.sample_rate / 1000}} kHz
+								{% endif %}
+							{% endif %}
+							{% if post.image_w.0 > 0 and post.image_h.0 > 0 %}
+								, {{post.image_w.0}}x{{post.image_h.0}}
+							{% endif %}
+							{% if post.file_original.0 != '' and post.file_original.0 != post.file.0 %}
+								, {{post.file_original.0}}.{{post.file_type.0}}
+							{% endif %}
+							)
+							{% if post.id3.0.playtime_string != '' %}
+								Length: {{post.id3.0.playtime_string}}
+							{% endif %}
+							{% if board.imgedit == 1 %}
+                                			{% if post.file_type.0 == 'jpg' or post.file_type.0 == 'gif' or post.file_type.0 == 'png' %}
+                                        			  <a href="{{KU_WEBPATH}}/imgedit.php?B={{board.name}}&I={{post.file.0}}&T={{posts.0.id}}">
+                                        			  <img src="{{KU_WEBPATH}}/css/edit.gif" alt="edit" />
+                                       				  </a>
+                                			{% endif %}
+							{% endif %}
+							</span>
+							{% if KU_THUMBMSG %}
+								<span class="thumbnailmsg"> 
+								{% if post.file_type.0 != 'jpg' and post.file_type.0 != 'gif' and post.file_type.0 != 'png' and post.videobox == '' %}
+									Extension icon displayed, click image to open file.
+								{% else %}
+									Thumbnail displayed, click image for full size.
+								{% endif %}
+								</span>
+							{% endif %}
+							<br />
+						{% endif %}
+						{% if post.file > 1 %}
+
+{# do this later
+
+							{foreach key=fileskey name=filesloop item=file from=$post.file}
+								{if $post.file.$fileskey != '' and ( $post.file_type.$fileskey == 'jpg' or $post.file_type.$fileskey == 'gif' or $post.file_type.$fileskey == 'png')}
+								{if $fileskey % 3 == 0}<br style="clear:both" />{% endif %}
+                                                                {if $post.file.$fileskey == 'removed'}
+                                                                       <div class="nothumb">
+								             File<br />Removed
+								       </div>
+                                                                {% else %}
+									<div style="float:left">
+									<span class="{if $.foreach.filesloop.first or $fileskey % 3 == 0}multithumbfirst{% else %}multithumb{% endif %}"><a href="{{file_path}}/src/{$post.file.$fileskey}.{$post.file_type.$fileskey}" onclick="javascript:expandimg('{{post.id}}-{$fileskey}', '{{file_path}}/src/{$post.file.$fileskey}.{$post.file_type.$fileskey}', '{{file_path}}/thumb/{$post.file.$fileskey}s.{$post.file_type.$fileskey}', '{$post.image_w.$fileskey}', '{$post.image_h.$fileskey}', '{$post.thumb_w.$fileskey}', '{$post.thumb_h.$fileskey}');return false;">({if $post.image_w.$fileskey > 0 and $post.image_h.$fileskey > 0}{$post.image_w.$fileskey}x{$post.image_h.$fileskey}{% else %}{$post.file_size_formatted.$fileskey}{% endif %})</a></span><br /><a {% if KU_NEWWINDOW %}target="_blank"{% endif %} href="{{file_path}}/src/{$post.file.$fileskey}.{$post.file_type.$fileskey}">
+									<span id="thumb{{post.id}}-{$fileskey}"><img class="{if $.foreach.filesloop.first or $fileskey % 3 == 0}multithumbfirst{% else %}multithumb{% endif %}" src="{{file_path}}/thumb/{$post.file.$fileskey}s.{$post.file_type.$fileskey}" alt="{{post.id}}" height="{$post.thumb_h.$fileskey}" width="{$post.thumb_w.$fileskey}" title="{$post.file.$fileskey}.{$post.file_type.$fileskey} - ({$post.file_size_formatted.$fileskey}{if $post.image_w.$fileskey > 0 and $post.image_h.$fileskey > 0}, {$post.image_w.$fileskey}x{$post.image_h.$fileskey}{% endif %}{if $post.file_original.$fileskey != '' and $post.file_original.$fileskey != $post.file.$fileskey}, {$post.file_original.$fileskey}.{$post.file_type.$fileskey}){% endif %}" /></span>
+									</a></div>
+                                                                {% endif %}
+								{elseif $post.nonstandard_file != ''}
+								{if $fileskey == 3}<br style="clear:left" />{% endif %}
+									<div style="float:left">
+									<span class="{if $.foreach.filesloop.first or $fileskey % 3 == 0}multithumbfirst{% else %}multithumb{% endif %}"><a {% if KU_NEWWINDOW %}target="_blank" {% endif %}href="{{file_path}}/src/{$post.file.$fileskey}.{$post.file_type.$fileskey}">{$post.file_type.$fileskey|upper} ({$post.file_size_formatted.$fileskey})</a></span><br />
+									<a {% if KU_NEWWINDOW %}target="_blank" {% endif %}href="{{file_path}}/src/{$post.file.$fileskey}.{$post.file_type.$fileskey}">
+									<span id="thumb{{post.id}}-{$fileskey}"><img class="{if $.foreach.filesloop.first or $fileskey % 3 == 0}multithumbfirst{% else %}multithumb{% endif %}" src="{$post.nonstandard_file.$fileskey}" alt="{{post.id}}" height="{$post.thumb_h.$fileskey}" width="{$post.thumb_w.$fileskey}" title="{if isset($post.id3.$fileskey.comments_html)}{if $post.id3.$fileskey.comments_html.artist.0 != ''}{$post.id3.$fileskey.comments_html.artist.0}{if $post.id3.$fileskey.comments_html.title.0 != ''} - {% endif %}{% endif %}{if $post.id3.$fileskey.comments_html.title.0 != ''}{$post.id3.$fileskey.comments_html.title.0}{% endif %}{% else %}{$post.file.$fileskey}.{$post.file_type.$fileskey}{% endif %} - ({$post.file_size_formatted.$fileskey}{if $post.id3.$fileskey.comments_html.bitrate != 0 or $post.id3.$fileskey.audio.sample_rate != 0}{if $post.id3.$fileskey.audio.bitrate != 0} - {round($post.id3.$fileskey.audio.bitrate / 1000)} kbps{if $post.id3.$fileskey.audio.sample_rate != 0} - {% endif %}{% endif %}{if $post.id3.$fileskey.audio.sample_rate != 0}{$post.id3.$fileskey.audio.sample_rate / 1000} kHz{% endif %}{% endif %}{if $post.file_original.$fileskey != '' and $post.file_original.$fileskey != $post.file.$fileskey}, {$post.file_original.$fileskey}.{$post.file_type.$fileskey}{% endif %}){if $post.id3.$fileskey.playtime_string != ''} Length: {$post.id3.$fileskey.playtime_string}{% endif %}" /></span>
+									</a></div>
+								{% endif %}
+								{if $.foreach.filesloop.last}
+								<br style="clear:both" />
+								{% endif %}
+							{% endfor %}
+
+
+#}
+
+						{% elseif post.file == 1 and post.videobox == '' and post.file.0 != '' and ( post.file_type.0 == 'jpg' or post.file_type.0 == 'gif' or post.file_type.0 == 'png') %}
+							{% if post.file.0 == 'removed' %}
+								<div class="nothumb">
+									File<br />Removed
+								</div>
+							{% else %}
+								<a {% if KU_NEWWINDOW %}target="_blank"{% endif %} href="{{file_path}}/src/{{post.file.0}}.{{post.file_type.0}}">
+								<span id="thumb{{post.id}}"><img src="{{file_path}}/thumb/{{post.file.0}}s.{{post.file_type.0}}" alt="{{post.id}}" class="thumb" height="{{post.thumb_h.0}}" width="{{post.thumb_w.0}}" /></span>
+								</a>
+							{% endif %}
+						{% elseif post.nonstandard_file.0 != '' %}
+							{% if post.file.0 == 'removed' %}
+								<div class="nothumb">
+									File<br />Removed
+								</div>
+							{% else %}
+								<a {% if KU_NEWWINDOW %}target="_blank"{% endif %} href="{{file_path}}/src/{{post.file.0}}.{{post.file_type.0}}">
+								<span id="thumb{{post.id}}"><img src="{{post.nonstandard_file.0}}" alt="{{post.id}}" class="thumb" height="{{post.thumb_h.0}}" width="{{post.thumb_w.0}}" /></span>
+								</a>
+							{% endif %}
+						{% endif %}
+		{% endif %}
+
+{#  do it later
+
+		{if is_array($post.file_type) and in_array('mp3', $post.file_type)}
+			{foreach key=fkey name=filesloop item=file from=$post.file}
+				{if $fkey == 0 and count($post.file) gt 1}
+					<br /><span class="multithumbfirst">
+				{% endif %}
+				{if $post.file_type.$fkey == 'mp3'}
+					<!--[if !IE]> -->
+					<object type="application/x-shockwave-flash" data="{%KU_CGIPATH}/inc/player/player.swf?playerID={{post.id}}&amp;soundFile={{file_path}}/src/{$post.file.$fkey|utf8_encode|urlencode}.mp3{if $post.id3.$fkey.comments_html.artist.0 != ''}&amp;artists={$post.id3.$fkey.comments_html.artist.0}{% endif %}{if $post.id3.$fkey.comments_html.title.0 != ''}&amp;titles={urlencode(mb_convert_encoding(html_entity_decode($post.id3.$fkey.comments_html.title.0), "UTF-8"))}{% endif %}&amp;wmode=transparent" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=10,0,22,87" width="290" height="24">
+					<param name="wmode" value="transparent" />
+					<!-- <![endif]-->
+					<!--[if IE]>
+					<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=10,0,22,87" width="290" height="24">
+						<param name="movie" value="{%KU_CGIPATH}/inc/player/player.swf?playerID={{post.id}}&amp;soundFile={{file_path}}/src/{$post.file.$fkey|utf8_encode|urlencode}.mp3{if $post.id3.$fkey.comments_html.artist.0 != ''}&amp;artists={$post.id3.$fkey.comments_html.artist.0}{% endif %}{if $post.id3.$fkey.comments_html.title.0 != ''}&amp;titles={urlencode(mb_convert_encoding(html_entity_decode($post.id3.$fkey.comments_html.title.0), "UTF-8"))}{% endif %}&amp;wmode=transparent" />
+						<param name="wmode" value="transparent" />
+					<!-->
+					</object>
+					<!-- <![endif]-->
+					{if count($post.file) gt 1}
+						<br />
+					{% endif %}
+				{% endif %}
+				{if $fkey gt 0 and $.foreach.filesloop.last}
+					</span><br style="clear:both" />
+				{% endif %}
+			{% endfor %}
+		{% endif %}
+
+
+#}
+		<blockquote>
+		{% if post.videobox %}
+			{{post.videobox}}
+		{% endif %}
+		{{post.message|raw}}
+		</blockquote>
+		{% if not post.stickied and post.parentid == 0 and ((board.maxage > 0 and (post.timestamp + (board.maxage * 3600)) < (now + 7200 ) ) or (post.deleted_timestamp > 0 and post.deleted_timestamp <= (now + 7200))) %}
+			<span class="oldpost">
+				Marked for deletion (old)
+			</span>
+			<br />
+		{% endif %}
+		{% if post.parentid == 0 %}
+			<div id="replies{{post.id}}{{board.name}}">
+			{% if post.replies %}
+				<span class="omittedposts">
+					{% if post.stickied == 0 %}
+						{{post.replies}} 
+						{% if post.replies == 1 %}
+							{t lower="yes"}Post 
+						{% else %}
+							{t lower="yes"}Posts 
+						{% endif %}
+					{% else %}
+						{{post.replies}}
+						{% if post.replies == 1 %}
+							{t lower="yes"}Post 
+						{% else %}
+							{t lower="yes"}Posts 
+						{% endif %}
+					{% endif %}
+					{% if post.images > 0 %}
+						and {$post.images}
+						{% if post.images == 1 %}
+							{t lower="yes"}Image 
+						{% else %}
+							{t lower="yes"}Images 
+						{% endif %}
+					{% endif %}
+					omitted. Click Reply to view.
+					</span>
+				{% endif %}
+			{% else %}
+				</td>
+			</tr>
+		</tbody>
+		</table>
+		
+		{% endif %}
+	{% endfor %}
+			</div>
+			</div>
+		<br clear="left" />
+		<hr />
+{% endfor %}
